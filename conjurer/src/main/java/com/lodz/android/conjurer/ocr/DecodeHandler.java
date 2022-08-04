@@ -10,7 +10,7 @@ import android.util.Log;
 import com.googlecode.leptonica.android.Pixa;
 import com.googlecode.leptonica.android.ReadFile;
 import com.googlecode.tesseract.android.TessBaseAPI;
-import com.lodz.android.conjurer.R;
+import com.lodz.android.conjurer.bean.OcrResultBean;
 
 /**
  * Class to send bitmap data for OCR.
@@ -86,13 +86,13 @@ final class DecodeHandler extends Handler {
         }
         bitmap = source.renderCroppedGreyscaleBitmap();
 
-        OcrResult ocrResult = getOcrResult();
+        OcrResultBean bean = getOcrResult();
         Handler handler = activity.getHandler();
         if (handler == null) {
             return;
         }
 
-        if (ocrResult == null) {
+        if (bean == null) {
             try {
                 sendContinuousOcrFailMessage();
             } catch (NullPointerException e) {
@@ -105,7 +105,7 @@ final class DecodeHandler extends Handler {
         }
 
         try {
-            Message message = Message.obtain(handler, Constant.CJ_OCR_CONTINUOUS_DECODE_SUCCEEDED, ocrResult);
+            Message message = Message.obtain(handler, Constant.CJ_OCR_CONTINUOUS_DECODE_SUCCEEDED, bean);
             message.sendToTarget();
         } catch (NullPointerException e) {
             activity.stopHandler();
@@ -115,8 +115,8 @@ final class DecodeHandler extends Handler {
     }
 
     @SuppressWarnings("unused")
-    private OcrResult getOcrResult() {
-        OcrResult ocrResult;
+    private OcrResultBean getOcrResult() {
+        OcrResultBean ocrResultBean;
         String textResult;
         long start = System.currentTimeMillis();
 
@@ -129,22 +129,22 @@ final class DecodeHandler extends Handler {
             if (textResult == null || textResult.equals("")) {
                 return null;
             }
-            ocrResult = new OcrResult();
-            ocrResult.setWordConfidences(baseApi.wordConfidences());
-            ocrResult.setMeanConfidence( baseApi.meanConfidence());
+            ocrResultBean = new OcrResultBean();
+            ocrResultBean.wordConfidences = baseApi.wordConfidences();
+            ocrResultBean.meanConfidence = baseApi.meanConfidence();
             if (ViewfinderView.DRAW_REGION_BOXES) {
                 Pixa regions = baseApi.getRegions();
-                ocrResult.setRegionBoundingBoxes(regions.getBoxRects());
+                ocrResultBean.regionBoundingBoxes = regions.getBoxRects();
                 regions.recycle();
             }
             if (ViewfinderView.DRAW_TEXTLINE_BOXES) {
                 Pixa textlines = baseApi.getTextlines();
-                ocrResult.setTextlineBoundingBoxes(textlines.getBoxRects());
+                ocrResultBean.textlineBoundingBoxes = textlines.getBoxRects();
                 textlines.recycle();
             }
             if (ViewfinderView.DRAW_STRIP_BOXES) {
                 Pixa strips = baseApi.getStrips();
-                ocrResult.setStripBoundingBoxes(strips.getBoxRects());
+                ocrResultBean.stripBoundingBoxes = strips.getBoxRects();
                 strips.recycle();
             }
 
@@ -152,11 +152,11 @@ final class DecodeHandler extends Handler {
             // presses the shutter button, in addition to maybe wanting to draw boxes/words during the
             // continuous mode recognition.
             Pixa words = baseApi.getWords();
-            ocrResult.setWordBoundingBoxes(words.getBoxRects());
+            ocrResultBean.wordBoundingBoxes = words.getBoxRects();
             words.recycle();
 
 //      if (ViewfinderView.DRAW_CHARACTER_BOXES || ViewfinderView.DRAW_CHARACTER_TEXT) {
-//        ocrResult.setCharacterBoundingBoxes(baseApi.getCharacters().getBoxRects());
+//        ocrResultBean.setCharacterBoundingBoxes(baseApi.getCharacters().getBoxRects());
 //      }
         } catch (RuntimeException e) {
             Log.e("OcrRecognizeAsyncTask", "Caught RuntimeException in request to Tesseract. Setting state to CONTINUOUS_STOPPED.");
@@ -170,10 +170,10 @@ final class DecodeHandler extends Handler {
             return null;
         }
         timeRequired = System.currentTimeMillis() - start;
-        ocrResult.setBitmap(bitmap);
-        ocrResult.setText(textResult);
-        ocrResult.setRecognitionTimeRequired(timeRequired);
-        return ocrResult;
+        ocrResultBean.bitmap = bitmap;
+        ocrResultBean.text = textResult;
+        ocrResultBean.recognitionTimeRequired = timeRequired;
+        return ocrResultBean;
     }
 
     private void sendContinuousOcrFailMessage() {

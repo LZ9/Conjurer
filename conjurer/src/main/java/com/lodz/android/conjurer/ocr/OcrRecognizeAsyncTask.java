@@ -12,7 +12,7 @@ import com.googlecode.leptonica.android.ReadFile;
 import com.googlecode.tesseract.android.ResultIterator;
 import com.googlecode.tesseract.android.TessBaseAPI;
 import com.googlecode.tesseract.android.TessBaseAPI.PageIteratorLevel;
-import com.lodz.android.conjurer.R;
+import com.lodz.android.conjurer.bean.OcrResultBean;
 
 import java.util.ArrayList;
 
@@ -31,7 +31,7 @@ final class OcrRecognizeAsyncTask extends AsyncTask<Void, Void, Boolean> {
     private byte[] data;
     private int width;
     private int height;
-    private OcrResult ocrResult;
+    private OcrResultBean mOcrResultBean;
     private long timeRequired;
 
     OcrRecognizeAsyncTask(CaptureActivity activity, TessBaseAPI baseApi, byte[] data, int width, int height) {
@@ -73,13 +73,13 @@ final class OcrRecognizeAsyncTask extends AsyncTask<Void, Void, Boolean> {
             if (textResult == null || textResult.equals("")) {
                 return false;
             }
-            ocrResult = new OcrResult();
-            ocrResult.setWordConfidences(baseApi.wordConfidences());
-            ocrResult.setMeanConfidence( baseApi.meanConfidence());
-            ocrResult.setRegionBoundingBoxes(baseApi.getRegions().getBoxRects());
-            ocrResult.setTextlineBoundingBoxes(baseApi.getTextlines().getBoxRects());
-            ocrResult.setWordBoundingBoxes(baseApi.getWords().getBoxRects());
-            ocrResult.setStripBoundingBoxes(baseApi.getStrips().getBoxRects());
+            mOcrResultBean = new OcrResultBean();
+            mOcrResultBean.wordConfidences = baseApi.wordConfidences();
+            mOcrResultBean.meanConfidence = baseApi.meanConfidence();
+            mOcrResultBean.regionBoundingBoxes = baseApi.getRegions().getBoxRects();
+            mOcrResultBean.textlineBoundingBoxes = baseApi.getTextlines().getBoxRects();
+            mOcrResultBean.wordBoundingBoxes = baseApi.getWords().getBoxRects();
+            mOcrResultBean.stripBoundingBoxes = baseApi.getStrips().getBoxRects();
 
             // Iterate through the results.
             final ResultIterator iterator = baseApi.getResultIterator();
@@ -93,7 +93,7 @@ final class OcrRecognizeAsyncTask extends AsyncTask<Void, Void, Boolean> {
                 charBoxes.add(lastRectBox);
             } while (iterator.next(PageIteratorLevel.RIL_SYMBOL));
             iterator.delete();
-            ocrResult.setCharacterBoundingBoxes(charBoxes);
+            mOcrResultBean.characterBoundingBoxes = charBoxes;
 
         } catch (RuntimeException e) {
             Log.e("OcrRecognizeAsyncTask", "Caught RuntimeException in request to Tesseract. Setting state to CONTINUOUS_STOPPED.");
@@ -107,9 +107,9 @@ final class OcrRecognizeAsyncTask extends AsyncTask<Void, Void, Boolean> {
             return false;
         }
         timeRequired = System.currentTimeMillis() - start;
-        ocrResult.setBitmap(bitmap);
-        ocrResult.setText(textResult);
-        ocrResult.setRecognitionTimeRequired(timeRequired);
+        mOcrResultBean.bitmap = bitmap;
+        mOcrResultBean.text = textResult;
+        mOcrResultBean.recognitionTimeRequired = timeRequired;
         return true;
     }
 
@@ -121,10 +121,10 @@ final class OcrRecognizeAsyncTask extends AsyncTask<Void, Void, Boolean> {
         if (handler != null) {
             // Send results for single-shot mode recognition.
             if (result) {
-                Message message = Message.obtain(handler, Constant.CJ_OCR_DECODE_SUCCEEDED, ocrResult);
+                Message message = Message.obtain(handler, Constant.CJ_OCR_DECODE_SUCCEEDED, mOcrResultBean);
                 message.sendToTarget();
             } else {
-                Message message = Message.obtain(handler, Constant.CJ_OCR_DECODE_FAILED, ocrResult);
+                Message message = Message.obtain(handler, Constant.CJ_OCR_DECODE_FAILED, mOcrResultBean);
                 message.sendToTarget();
             }
             activity.getProgressDialog().dismiss();

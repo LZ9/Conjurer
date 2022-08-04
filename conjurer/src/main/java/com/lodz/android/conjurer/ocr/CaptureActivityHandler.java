@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.widget.Toast;
 
+import com.lodz.android.conjurer.bean.OcrResultBean;
 import com.lodz.android.conjurer.camera.CameraManager;
 
 
@@ -84,7 +85,7 @@ final class CaptureActivityHandler extends Handler {
             case Constant.CJ_OCR_CONTINUOUS_DECODE_SUCCEEDED:
                 DecodeHandler.resetDecodeState();
                 try {
-                    activity.handleOcrContinuousDecode((OcrResult) message.obj);
+                    activity.handleOcrContinuousDecode((OcrResultBean) message.obj);
                 } catch (NullPointerException e) {
                     // Continue
                 }
@@ -95,7 +96,7 @@ final class CaptureActivityHandler extends Handler {
             case Constant.CJ_OCR_DECODE_SUCCEEDED:
                 state = State.SUCCESS;
                 activity.setShutterButtonClickable(true);
-                activity.handleOcrDecode((OcrResult) message.obj);
+                activity.handleOcrDecode((OcrResultBean) message.obj);
                 break;
             case Constant.CJ_OCR_DECODE_FAILED:
                 state = State.PREVIEW;

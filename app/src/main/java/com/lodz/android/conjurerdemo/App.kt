@@ -10,7 +10,7 @@ class App :BaseApplication(){
 
 
     override fun onStartCreate() {
-        getBaseLayoutConfig().getTitleBarLayoutConfig().backgroundColor = R.color.teal_200
+        getBaseLayoutConfig().getTitleBarLayoutConfig().backgroundColor = R.color.color_9bd3ec
     }
 
     override fun onExit() {

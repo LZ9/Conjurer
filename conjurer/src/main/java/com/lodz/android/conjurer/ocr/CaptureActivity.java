@@ -43,6 +43,7 @@ import androidx.appcompat.widget.AppCompatToggleButton;
 
 import com.googlecode.tesseract.android.TessBaseAPI;
 import com.lodz.android.conjurer.R;
+import com.lodz.android.conjurer.bean.OcrResultBean;
 import com.lodz.android.conjurer.camera.CameraManager;
 import com.lodz.android.conjurer.camera.ShutterButton;
 
@@ -162,7 +163,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     private TextView statusViewTop;
     private TextView ocrResultView;
     private View resultView;
-    private OcrResult lastResult;
+    private OcrResultBean lastResult;
     private boolean hasSurface;
     private TessBaseAPI baseApi; // Java interface for the Tesseract OCR engine
     private String sourceLanguageCodeOcr = "eng"; // ISO 639-3 language code
@@ -677,14 +678,14 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     /**
      * Displays information relating to the result of OCR, and requests a translation if necessary.
      *
-     * @param ocrResult Object representing successful OCR results
+     * @param bean Object representing successful OCR results
      * @return True if a non-null result was received for OCR
      */
-    boolean handleOcrDecode(OcrResult ocrResult) {
-        lastResult = ocrResult;
+    boolean handleOcrDecode(OcrResultBean bean) {
+        lastResult = bean;
 
         // Test whether the result is null
-        if (ocrResult.getText() == null || ocrResult.getText().equals("")) {
+        if (bean.text == null || bean.text.equals("")) {
             Toast toast = Toast.makeText(this, "OCR failed. Please try again.", Toast.LENGTH_SHORT);
             toast.setGravity(Gravity.TOP, 0, 0);
             toast.show();
@@ -699,7 +700,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         resultView.setVisibility(View.VISIBLE);
 
         ImageView bitmapImageView = (ImageView) findViewById(R.id.image_view);
-        Bitmap lastBitmap = ocrResult.getBitmap();
+        Bitmap lastBitmap = bean.getAnnotatedBitmap();
         if (lastBitmap == null) {
             bitmapImageView.setVisibility(View.GONE);
         } else {
@@ -708,14 +709,14 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         }
 
         TextView ocrResultTextView = (TextView) findViewById(R.id.ocr_result_text_view);
-        ocrResultTextView.setText(ocrResult.getText());
+        ocrResultTextView.setText(bean.text);
         // Crudely scale betweeen 22 and 32 -- bigger font for shorter text
-        int scaledSize = Math.max(22, 32 - ocrResult.getText().length() / 4);
+        int scaledSize = Math.max(22, 32 - bean.text.length() / 4);
         ocrResultTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, scaledSize);
 
         setProgressBarVisibility(false);
 //        Intent intent = new Intent();
-//        intent.putExtra(EXTRA_OCR_RESULT, ocrResult.getText());
+//        intent.putExtra(EXTRA_OCR_RESULT, bean.getText());
 //        setResult(RESULT_OK, intent);
         return true;
     }
@@ -778,29 +779,33 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     /**
      * Displays information relating to the results of a successful real-time OCR request.
      *
-     * @param ocrResult Object representing successful OCR results
+     * @param bean Object representing successful OCR results
      */
-    void handleOcrContinuousDecode(OcrResult ocrResult) {
+    void handleOcrContinuousDecode(OcrResultBean bean) {
 
-        lastResult = ocrResult;
+        lastResult = bean;
 
         // Send an OcrResultText object to the ViewfinderView for text rendering
-        viewfinderView.addResultText(new OcrResultText(ocrResult.getText(),
-                ocrResult.getWordConfidences(),
-                ocrResult.getMeanConfidence(),
-                ocrResult.getBitmapDimensions(),
-                ocrResult.getRegionBoundingBoxes(),
-                ocrResult.getTextlineBoundingBoxes(),
-                ocrResult.getStripBoundingBoxes(),
-                ocrResult.getWordBoundingBoxes(),
-                ocrResult.getCharacterBoundingBoxes()));
+        viewfinderView.addResultText(
+                new OcrResultText(
+                        bean.text,
+                        bean.wordConfidences,
+                        bean.meanConfidence,
+                        bean.getBitmapDimensions(),
+                        bean.regionBoundingBoxes,
+                        bean.textlineBoundingBoxes,
+                        bean.stripBoundingBoxes,
+                        bean.wordBoundingBoxes,
+                        bean.characterBoundingBoxes
+                )
+        );
 
-        Integer meanConfidence = ocrResult.getMeanConfidence();
+        Integer meanConfidence = bean.meanConfidence;
 
         if (CONTINUOUS_DISPLAY_RECOGNIZED_TEXT) {
             // Display the recognized text on the screen
-            statusViewTop.setText(ocrResult.getText());
-            int scaledSize = Math.max(22, 32 - ocrResult.getText().length() / 4);
+            statusViewTop.setText(bean.text);
+            int scaledSize = Math.max(22, 32 - bean.text.length() / 4);
             statusViewTop.setTextSize(TypedValue.COMPLEX_UNIT_SP, scaledSize);
             statusViewTop.setTextColor(Color.BLACK);
             statusViewTop.setBackgroundResource(R.color.status_top_text_background);
@@ -810,7 +815,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
 
         if (CONTINUOUS_DISPLAY_METADATA) {
             // Display recognition-related metadata at the bottom of the screen
-            long recognitionTimeRequired = ocrResult.getRecognitionTimeRequired();
+            long recognitionTimeRequired = bean.recognitionTimeRequired;
             statusViewBottom.setTextSize(14);
             statusViewBottom.setText("OCR: " + sourceLanguageReadable + " - Mean confidence: " +
                     meanConfidence.toString() + " - Time required: " + recognitionTimeRequired + " ms");
