@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.os.Bundle;
@@ -35,7 +34,6 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -142,6 +140,14 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     // Options menu, for copy to clipboard
     private static final int OPTIONS_COPY_RECOGNIZED_TEXT_ID = Menu.FIRST;
     private static final int OPTIONS_SHARE_RECOGNIZED_TEXT_ID = Menu.FIRST + 1;
+
+    public static final int REQUEST_CODE = 700;
+    public static final String EXTRA_OCR_RESULT = "extra_ocr_result";
+
+    public static void start(Activity activity) {
+        Intent starter = new Intent(activity, CaptureActivity.class);
+        activity.startActivityForResult(starter, REQUEST_CODE);
+    }
 
     private CameraManager cameraManager;
     private CaptureActivityHandler handler;
@@ -689,33 +695,39 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
             return false;
         }
 
+        Intent intent = new Intent();
+        intent.putExtra(EXTRA_OCR_RESULT, ocrResult.getText());
+        setResult(RESULT_OK, intent);
+        finish();
+
+
         // Turn off capture-related UI elements
-        shutterButton.setVisibility(View.GONE);
-        statusViewBottom.setVisibility(View.GONE);
-        statusViewTop.setVisibility(View.GONE);
-        cameraButtonView.setVisibility(View.GONE);
-        viewfinderView.setVisibility(View.GONE);
-        resultView.setVisibility(View.VISIBLE);
-
-        ImageView bitmapImageView = (ImageView) findViewById(R.id.image_view);
-        lastBitmap = ocrResult.getBitmap();
-        if (lastBitmap == null) {
-            bitmapImageView.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher));
-        } else {
-            bitmapImageView.setImageBitmap(lastBitmap);
-        }
-
-        // Display the recognized text
-        TextView sourceLanguageTextView = (TextView) findViewById(R.id.source_language_text_view);
-        sourceLanguageTextView.setText(sourceLanguageReadable);
-        TextView ocrResultTextView = (TextView) findViewById(R.id.ocr_result_text_view);
-        ocrResultTextView.setText(ocrResult.getText());
-        // Crudely scale betweeen 22 and 32 -- bigger font for shorter text
-        int scaledSize = Math.max(22, 32 - ocrResult.getText().length() / 4);
-        ocrResultTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, scaledSize);
-
-        progressView.setVisibility(View.GONE);
-        setProgressBarVisibility(false);
+//        shutterButton.setVisibility(View.GONE);
+//        statusViewBottom.setVisibility(View.GONE);
+//        statusViewTop.setVisibility(View.GONE);
+//        cameraButtonView.setVisibility(View.GONE);
+//        viewfinderView.setVisibility(View.GONE);
+//        resultView.setVisibility(View.VISIBLE);
+//
+//        ImageView bitmapImageView = (ImageView) findViewById(R.id.image_view);
+//        lastBitmap = ocrResult.getBitmap();
+//        if (lastBitmap == null) {
+//            bitmapImageView.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher));
+//        } else {
+//            bitmapImageView.setImageBitmap(lastBitmap);
+//        }
+//
+//        // Display the recognized text
+//        TextView sourceLanguageTextView = (TextView) findViewById(R.id.source_language_text_view);
+//        sourceLanguageTextView.setText(sourceLanguageReadable);
+//        TextView ocrResultTextView = (TextView) findViewById(R.id.ocr_result_text_view);
+//        ocrResultTextView.setText(ocrResult.getText());
+//        // Crudely scale betweeen 22 and 32 -- bigger font for shorter text
+//        int scaledSize = Math.max(22, 32 - ocrResult.getText().length() / 4);
+//        ocrResultTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, scaledSize);
+//
+//        progressView.setVisibility(View.GONE);
+//        setProgressBarVisibility(false);
         return true;
     }
 
