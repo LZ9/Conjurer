@@ -29,5 +29,10 @@ android {
 }
 
 dependencies {
+    implementation 'androidx.appcompat:appcompat:1.4.2'
 
+    api 'com.rmtheis:tess-two:9.1.0'
+    api files('libs/google-api-translate-java-0.98-mod2.jar')
+    api files('libs/jtar-1.0.4.jar')
+    api files('libs/microsoft-translator-java-api-0.6-mod.jar')
 }
