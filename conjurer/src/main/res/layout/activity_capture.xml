@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <SurfaceView
+        android:id="@+id/preview_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <com.lodz.android.conjurer.ocr.ViewfinderView
+        android:id="@+id/viewfinder_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#0000" />
+
+    <LinearLayout
+        android:id="@+id/result_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/result_view"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/image_view"
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/cj_app_img_name"
+            android:maxWidth="160dp"
+            android:maxHeight="160dp"
+            android:scaleType="centerInside" />
+
+        <ScrollView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="15dp">
+
+            <TextView
+                android:id="@+id/ocr_result_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/result_text"
+                android:textColorLink="@color/result_text"
+                android:textSize="22sp" />
+
+        </ScrollView>
+
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/preview_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!--    实时预览识别结果    -->
+        <TextView
+            android:id="@+id/status_view_top"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start|top"
+            android:background="#0000"
+            android:text=""
+            android:textColor="@color/status_text"
+            android:textSize="14sp" />
+
+        <!--    实时预览状态信息    -->
+        <TextView
+            android:id="@+id/status_view_bottom"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start|bottom"
+            android:background="#0000"
+            android:text=""
+            android:textColor="@color/status_text"
+            android:textSize="14sp" />
+
+    </FrameLayout>
+
+    <com.lodz.android.conjurer.camera.ShutterButton
+        android:id="@+id/shutter_button"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_gravity="center_vertical|end"
+        android:layout_margin="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:src="@drawable/shutter_button" />
+
+    <androidx.appcompat.widget.AppCompatToggleButton
+        android:id="@+id/preview_togbtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|top"
+        android:layout_margin="8dp"
+        android:textOff="@string/cj_app_preview_on"
+        android:textOn="@string/cj_app_preview_off" />
+
+
+</FrameLayout>

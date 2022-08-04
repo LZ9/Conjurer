@@ -34,8 +34,12 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.CompoundButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.widget.AppCompatToggleButton;
 
 import com.googlecode.tesseract.android.TessBaseAPI;
 import com.lodz.android.conjurer.R;
@@ -157,16 +161,12 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     private TextView statusViewBottom;
     private TextView statusViewTop;
     private TextView ocrResultView;
-    private View cameraButtonView;
     private View resultView;
-    private View progressView;
     private OcrResult lastResult;
-    private Bitmap lastBitmap;
     private boolean hasSurface;
     private TessBaseAPI baseApi; // Java interface for the Tesseract OCR engine
     private String sourceLanguageCodeOcr = "eng"; // ISO 639-3 language code
     private String sourceLanguageReadable = "English"; // Language name, for example, "English"
-    private int pageSegmentationMode = TessBaseAPI.PageSegMode.PSM_AUTO_OSD;
     private int ocrEngineMode = TessBaseAPI.OEM_TESSERACT_ONLY;
     private ShutterButton shutterButton;
     private boolean isContinuousModeActive = false; // Whether we are doing OCR in continuous mode
@@ -197,9 +197,8 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         Window window = getWindow();
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-        setContentView(R.layout.capture);
+        setContentView(R.layout.activity_capture);
         viewfinderView = (ViewfinderView) findViewById(R.id.viewfinder_view);
-        cameraButtonView = findViewById(R.id.camera_button_view);
         resultView = findViewById(R.id.result_view);
 
         statusViewBottom = (TextView) findViewById(R.id.status_view_bottom);
@@ -208,16 +207,16 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         registerForContextMenu(statusViewTop);
 
         //实时预览
-//        ToggleButton previewSwitch = findViewById(R.id.preview_switch);
-//        previewSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-//            @Override
-//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-//                isContinuousModeActive = isChecked;
-//                statusViewBottom.setVisibility(isContinuousModeActive ? View.VISIBLE : View.GONE);
-//                statusViewTop.setVisibility(isContinuousModeActive ? View.VISIBLE : View.GONE);
-//                resumeOCR();
-//            }
-//        });
+        AppCompatToggleButton toggleBtn = findViewById(R.id.preview_togbtn);
+        toggleBtn.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                isContinuousModeActive = isChecked;
+                statusViewBottom.setVisibility(isContinuousModeActive ? View.VISIBLE : View.GONE);
+                statusViewTop.setVisibility(isContinuousModeActive ? View.VISIBLE : View.GONE);
+                resumeOCR();
+            }
+        });
 
         handler = null;
         lastResult = null;
@@ -249,8 +248,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
 
         ocrResultView = (TextView) findViewById(R.id.ocr_result_text_view);
         registerForContextMenu(ocrResultView);
-
-        progressView = (View) findViewById(R.id.indeterminate_progress_indicator_view);
 
         cameraManager = new CameraManager(getApplication());
         viewfinderView.setCameraManager(cameraManager);
@@ -348,7 +345,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         int previousOcrEngineMode = ocrEngineMode;
 
         // Retrieve from preferences, and set in this Activity, the page segmentation mode preference
-        pageSegmentationMode = TessBaseAPI.PageSegMode.PSM_AUTO_OSD;
         // Retrieve from preferences, and set in this Activity, the OCR engine mode
         ocrEngineMode = TessBaseAPI.OEM_TESSERACT_ONLY;
 
@@ -395,7 +391,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
             handler.resetState();
         }
         if (baseApi != null) {
-            baseApi.setPageSegMode(pageSegmentationMode);
+            baseApi.setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO_OSD);
             baseApi.setVariable(TessBaseAPI.VAR_CHAR_BLACKLIST, "");//黑名单
             baseApi.setVariable(TessBaseAPI.VAR_CHAR_WHITELIST, "Xx0123456789");//白名单
         }
@@ -695,39 +691,32 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
             return false;
         }
 
-        Intent intent = new Intent();
-        intent.putExtra(EXTRA_OCR_RESULT, ocrResult.getText());
-        setResult(RESULT_OK, intent);
-        finish();
-
-
         // Turn off capture-related UI elements
-//        shutterButton.setVisibility(View.GONE);
-//        statusViewBottom.setVisibility(View.GONE);
-//        statusViewTop.setVisibility(View.GONE);
-//        cameraButtonView.setVisibility(View.GONE);
-//        viewfinderView.setVisibility(View.GONE);
-//        resultView.setVisibility(View.VISIBLE);
-//
-//        ImageView bitmapImageView = (ImageView) findViewById(R.id.image_view);
-//        lastBitmap = ocrResult.getBitmap();
-//        if (lastBitmap == null) {
-//            bitmapImageView.setImageBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher));
-//        } else {
-//            bitmapImageView.setImageBitmap(lastBitmap);
-//        }
-//
-//        // Display the recognized text
-//        TextView sourceLanguageTextView = (TextView) findViewById(R.id.source_language_text_view);
-//        sourceLanguageTextView.setText(sourceLanguageReadable);
-//        TextView ocrResultTextView = (TextView) findViewById(R.id.ocr_result_text_view);
-//        ocrResultTextView.setText(ocrResult.getText());
-//        // Crudely scale betweeen 22 and 32 -- bigger font for shorter text
-//        int scaledSize = Math.max(22, 32 - ocrResult.getText().length() / 4);
-//        ocrResultTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, scaledSize);
-//
-//        progressView.setVisibility(View.GONE);
-//        setProgressBarVisibility(false);
+        shutterButton.setVisibility(View.GONE);
+        statusViewBottom.setVisibility(View.GONE);
+        statusViewTop.setVisibility(View.GONE);
+        viewfinderView.setVisibility(View.GONE);
+        resultView.setVisibility(View.VISIBLE);
+
+        ImageView bitmapImageView = (ImageView) findViewById(R.id.image_view);
+        Bitmap lastBitmap = ocrResult.getBitmap();
+        if (lastBitmap == null) {
+            bitmapImageView.setVisibility(View.GONE);
+        } else {
+            bitmapImageView.setVisibility(View.VISIBLE);
+            bitmapImageView.setImageBitmap(lastBitmap);
+        }
+
+        TextView ocrResultTextView = (TextView) findViewById(R.id.ocr_result_text_view);
+        ocrResultTextView.setText(ocrResult.getText());
+        // Crudely scale betweeen 22 and 32 -- bigger font for shorter text
+        int scaledSize = Math.max(22, 32 - ocrResult.getText().length() / 4);
+        ocrResultTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, scaledSize);
+
+        setProgressBarVisibility(false);
+//        Intent intent = new Intent();
+//        intent.putExtra(EXTRA_OCR_RESULT, ocrResult.getText());
+//        setResult(RESULT_OK, intent);
         return true;
     }
 
@@ -930,7 +919,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
 //            statusViewTop.setVisibility(View.VISIBLE);
         }
         viewfinderView.setVisibility(View.VISIBLE);
-        cameraButtonView.setVisibility(View.VISIBLE);
         if (DISPLAY_SHUTTER_BUTTON) {
             shutterButton.setVisibility(View.VISIBLE);
         }

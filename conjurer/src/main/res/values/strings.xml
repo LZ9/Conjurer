@@ -1,0 +1,5 @@
+<resources>
+    <string name="cj_app_img_name">conjurer</string>
+    <string name="cj_app_preview_on">开启预览</string>
+    <string name="cj_app_preview_off">关闭预览</string>
+</resources>
