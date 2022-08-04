@@ -8,7 +8,9 @@ import android.view.Gravity;
 import android.widget.Toast;
 
 import com.lodz.android.conjurer.bean.OcrResultBean;
+import com.lodz.android.conjurer.bean.OcrResultFailure;
 import com.lodz.android.conjurer.camera.CameraManager;
+import com.lodz.android.conjurer.config.Constant;
 
 
 /**

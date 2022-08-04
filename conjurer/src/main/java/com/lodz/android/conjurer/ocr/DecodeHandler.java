@@ -11,6 +11,9 @@ import com.googlecode.leptonica.android.Pixa;
 import com.googlecode.leptonica.android.ReadFile;
 import com.googlecode.tesseract.android.TessBaseAPI;
 import com.lodz.android.conjurer.bean.OcrResultBean;
+import com.lodz.android.conjurer.bean.OcrResultFailure;
+import com.lodz.android.conjurer.config.Constant;
+import com.lodz.android.conjurer.ocr.task.OcrRecognizeAsyncTask;
 
 /**
  * Class to send bitmap data for OCR.

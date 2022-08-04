@@ -1,4 +1,4 @@
-package com.lodz.android.conjurer.ocr
+package com.lodz.android.conjurer.config
 
 /**
  * @author zhouL

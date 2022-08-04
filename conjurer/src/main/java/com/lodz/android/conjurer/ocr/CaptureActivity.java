@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
@@ -44,8 +45,11 @@ import androidx.appcompat.widget.AppCompatToggleButton;
 import com.googlecode.tesseract.android.TessBaseAPI;
 import com.lodz.android.conjurer.R;
 import com.lodz.android.conjurer.bean.OcrResultBean;
+import com.lodz.android.conjurer.bean.OcrResultFailure;
 import com.lodz.android.conjurer.camera.CameraManager;
 import com.lodz.android.conjurer.camera.ShutterButton;
+import com.lodz.android.conjurer.config.Constant;
+import com.lodz.android.conjurer.ocr.task.OcrInitAsyncTask;
 
 import java.io.File;
 import java.io.IOException;
@@ -115,7 +119,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     private static final long CAMERA_FOCUS_DELAY = 100L;
 
     /** Languages for which Cube data is available. */
-    static final String[] CUBE_SUPPORTED_LANGUAGES = {
+    public static final String[] CUBE_SUPPORTED_LANGUAGES = {
             "ara", // Arabic
             "eng", // English
             "hin" // Hindi
@@ -127,13 +131,13 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     };
 
     /** Resource to use for data file downloads. */
-    static final String DOWNLOAD_BASE = "http://tesseract-ocr.googlecode.com/files/";
+    public static final String DOWNLOAD_BASE = "http://tesseract-ocr.googlecode.com/files/";
 
     /** Download filename for orientation and script detection (OSD) data. */
-    static final String OSD_FILENAME = "tesseract-ocr-3.01.osd.tar";
+    public static final String OSD_FILENAME = "tesseract-ocr-3.01.osd.tar";
 
     /** Destination filename for orientation and script detection (OSD) data. */
-    static final String OSD_FILENAME_BASE = "osd.traineddata";
+    public static final String OSD_FILENAME_BASE = "osd.traineddata";
 
     /** Minimum mean confidence score necessary to not reject single-shot OCR result. Currently unused. */
     static final int MINIMUM_MEAN_CONFIDENCE = 0; // 0 means don't reject any scored results
@@ -177,7 +181,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     private boolean isEngineReady;
     private boolean isPaused;
 
-    Handler getHandler() {
+    public Handler getHandler() {
         return handler;
     }
 
@@ -185,7 +189,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         return baseApi;
     }
 
-    CameraManager getCameraManager() {
+    public CameraManager getCameraManager() {
         return cameraManager;
     }
 
@@ -379,7 +383,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
      * or after the app regains focus. Sets state related settings and OCR engine parameters,
      * and requests camera initialization.
      */
-    void resumeOCR() {
+    public void resumeOCR() {
         Log.d(TAG, "resumeOCR()");
 
         // This method is called when Tesseract has already been successfully initialized, so set
@@ -487,7 +491,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         super.onPause();
     }
 
-    void stopHandler() {
+    public void stopHandler() {
         if (handler != null) {
             handler.stop();
         }
@@ -786,19 +790,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         lastResult = bean;
 
         // Send an OcrResultText object to the ViewfinderView for text rendering
-        viewfinderView.addResultText(
-                new OcrResultText(
-                        bean.text,
-                        bean.wordConfidences,
-                        bean.meanConfidence,
-                        bean.getBitmapDimensions(),
-                        bean.regionBoundingBoxes,
-                        bean.textlineBoundingBoxes,
-                        bean.stripBoundingBoxes,
-                        bean.wordBoundingBoxes,
-                        bean.characterBoundingBoxes
-                )
-        );
+        viewfinderView.addResultText(bean);
 
         Integer meanConfidence = bean.meanConfidence;
 
@@ -932,7 +924,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     }
 
     /** Displays a pop-up message showing the name of the current OCR source language. */
-    void showLanguageName() {
+    public void showLanguageName() {
         Toast toast = Toast.makeText(this, "OCR: " + sourceLanguageReadable, Toast.LENGTH_LONG);
         toast.setGravity(Gravity.TOP, 0, 0);
         toast.show();
@@ -950,7 +942,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     }
 
     @SuppressWarnings("unused")
-    void setButtonVisibility(boolean visible) {
+    public void setButtonVisibility(boolean visible) {
         if (shutterButton != null && visible == true && DISPLAY_SHUTTER_BUTTON) {
             shutterButton.setVisibility(View.VISIBLE);
         } else if (shutterButton != null) {
@@ -994,7 +986,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         indeterminateDialog.show();
     }
 
-    ProgressDialog getProgressDialog() {
+    public ProgressDialog getProgressDialog() {
         return indeterminateDialog;
     }
 
@@ -1004,12 +996,24 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
      * @param title The title for the dialog box
      * @param message The error message to be displayed
      */
-    void showErrorMessage(String title, String message) {
+    public void showErrorMessage(String title, String message) {
         new AlertDialog.Builder(this)
                 .setTitle(title)
                 .setMessage(message)
-                .setOnCancelListener(new FinishListener(this))
-                .setPositiveButton( "Done", new FinishListener(this))
+                .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        dialog.dismiss();
+                        finish();
+                    }
+                })
+                .setPositiveButton("Done", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        finish();
+                    }
+                })
                 .show();
     }
 }

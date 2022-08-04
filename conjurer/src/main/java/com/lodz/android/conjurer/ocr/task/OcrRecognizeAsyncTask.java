@@ -1,4 +1,4 @@
-package com.lodz.android.conjurer.ocr;
+package com.lodz.android.conjurer.ocr.task;
 
 
 import android.graphics.Bitmap;
@@ -13,6 +13,8 @@ import com.googlecode.tesseract.android.ResultIterator;
 import com.googlecode.tesseract.android.TessBaseAPI;
 import com.googlecode.tesseract.android.TessBaseAPI.PageIteratorLevel;
 import com.lodz.android.conjurer.bean.OcrResultBean;
+import com.lodz.android.conjurer.config.Constant;
+import com.lodz.android.conjurer.ocr.CaptureActivity;
 
 import java.util.ArrayList;
 
@@ -20,7 +22,7 @@ import java.util.ArrayList;
  * Class to send OCR requests to the OCR engine in a separate thread, send a success/failure message,
  * and dismiss the indeterminate progress dialog box. Used for non-continuous mode OCR only.
  */
-final class OcrRecognizeAsyncTask extends AsyncTask<Void, Void, Boolean> {
+public final class OcrRecognizeAsyncTask extends AsyncTask<Void, Void, Boolean> {
 
     //  private static final boolean PERFORM_FISHER_THRESHOLDING = false;
     //  private static final boolean PERFORM_OTSU_THRESHOLDING = false;
@@ -34,7 +36,7 @@ final class OcrRecognizeAsyncTask extends AsyncTask<Void, Void, Boolean> {
     private OcrResultBean mOcrResultBean;
     private long timeRequired;
 
-    OcrRecognizeAsyncTask(CaptureActivity activity, TessBaseAPI baseApi, byte[] data, int width, int height) {
+    public OcrRecognizeAsyncTask(CaptureActivity activity, TessBaseAPI baseApi, byte[] data, int width, int height) {
         this.activity = activity;
         this.baseApi = baseApi;
         this.data = data;

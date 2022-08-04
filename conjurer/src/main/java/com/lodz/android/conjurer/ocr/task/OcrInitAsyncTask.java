@@ -1,4 +1,4 @@
-package com.lodz.android.conjurer.ocr;
+package com.lodz.android.conjurer.ocr.task;
 
 
 import android.app.ProgressDialog;
@@ -7,6 +7,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.googlecode.tesseract.android.TessBaseAPI;
+import com.lodz.android.conjurer.ocr.CaptureActivity;
 
 import org.xeustechnologies.jtar.TarEntry;
 import org.xeustechnologies.jtar.TarInputStream;
@@ -32,7 +33,7 @@ import java.util.zip.ZipInputStream;
  * Installs the language data required for OCR, and initializes the OCR engine using a background
  * thread.
  */
-final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean> {
+public  final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean> {
     private static final String TAG = OcrInitAsyncTask.class.getSimpleName();
 
     /** Suffixes of required data files for Cube. */
@@ -75,7 +76,7 @@ final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean> {
      * @param ocrEngineMode
      *          Whether to use Tesseract, Cube, or both
      */
-    OcrInitAsyncTask(CaptureActivity activity, TessBaseAPI baseApi, ProgressDialog dialog,
+    public  OcrInitAsyncTask(CaptureActivity activity, TessBaseAPI baseApi, ProgressDialog dialog,
                      ProgressDialog indeterminateDialog, String languageCode, String languageName,
                      int ocrEngineMode) {
         this.activity = activity;

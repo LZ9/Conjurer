@@ -13,6 +13,7 @@ import android.util.AttributeSet;
 import android.view.View;
 
 import com.lodz.android.conjurer.R;
+import com.lodz.android.conjurer.bean.OcrResultBean;
 import com.lodz.android.conjurer.camera.CameraManager;
 
 import java.util.List;
@@ -56,7 +57,7 @@ public final class ViewfinderView extends View {
     private final int maskColor;
     private final int frameColor;
     private final int cornerColor;
-    private OcrResultText resultText;
+    private OcrResultBean resultBean;
     private String[] words;
     private List<Rect> regionBoundingBoxes;
     private List<Rect> textlineBoundingBoxes;
@@ -105,10 +106,10 @@ public final class ViewfinderView extends View {
         canvas.drawRect(0, frame.bottom + 1, width, height, paint);
 
         // If we have an OCR result, overlay its information on the viewfinder.
-        if (resultText != null) {
+        if (resultBean != null) {
 
             // Only draw text/bounding boxes on viewfinder if it hasn't been resized since the OCR was requested.
-            Point bitmapSize = resultText.getBitmapDimensions();
+            Point bitmapSize = resultBean.getBitmapDimensions();
             previewFrame = cameraManager.getFramingRectInPreview();
             if (bitmapSize.x == previewFrame.width() && bitmapSize.y == previewFrame.height()) {
 
@@ -117,7 +118,7 @@ public final class ViewfinderView extends View {
                 float scaleY = frame.height() / (float) previewFrame.height();
 
                 if (DRAW_REGION_BOXES) {
-                    regionBoundingBoxes = resultText.getRegionBoundingBoxes();
+                    regionBoundingBoxes = resultBean.regionBoundingBoxes;
                     for (int i = 0; i < regionBoundingBoxes.size(); i++) {
                         paint.setAlpha(0xA0);
                         paint.setColor(Color.MAGENTA);
@@ -133,7 +134,7 @@ public final class ViewfinderView extends View {
 
                 if (DRAW_TEXTLINE_BOXES) {
                     // Draw each textline
-                    textlineBoundingBoxes = resultText.getTextlineBoundingBoxes();
+                    textlineBoundingBoxes = resultBean.textlineBoundingBoxes;
                     paint.setAlpha(0xA0);
                     paint.setColor(Color.RED);
                     paint.setStyle(Style.STROKE);
@@ -148,7 +149,7 @@ public final class ViewfinderView extends View {
                 }
 
                 if (DRAW_STRIP_BOXES) {
-                    stripBoundingBoxes = resultText.getStripBoundingBoxes();
+                    stripBoundingBoxes = resultBean.stripBoundingBoxes;
                     paint.setAlpha(0xFF);
                     paint.setColor(Color.YELLOW);
                     paint.setStyle(Style.STROKE);
@@ -164,7 +165,7 @@ public final class ViewfinderView extends View {
 
                 if (DRAW_WORD_BOXES || DRAW_WORD_TEXT) {
                     // Split the text into words
-                    wordBoundingBoxes = resultText.getWordBoundingBoxes();
+                    wordBoundingBoxes = resultBean.wordBoundingBoxes;
                     //      for (String w : words) {
                     //        Log.e("ViewfinderView", "word: " + w);
                     //      }
@@ -189,8 +190,8 @@ public final class ViewfinderView extends View {
                 }
 
                 if (DRAW_WORD_TEXT) {
-                    words = resultText.getText().replace("\n"," ").split(" ");
-                    int[] wordConfidences = resultText.getWordConfidences();
+                    words = resultBean.text.replace("\n"," ").split(" ");
+                    int[] wordConfidences = resultBean.wordConfidences;
                     for (int i = 0; i < wordBoundingBoxes.size(); i++) {
                         boolean isWordBlank = true;
                         try {
@@ -365,16 +366,16 @@ public final class ViewfinderView extends View {
     /**
      * Adds the given OCR results for drawing to the view.
      *
-     * @param text Object containing OCR-derived text and corresponding data.
+     * @param bean Object containing OCR-derived text and corresponding data.
      */
-    public void addResultText(OcrResultText text) {
-        resultText = text;
+    public void addResultText(OcrResultBean bean) {
+        resultBean = bean;
     }
 
     /**
      * Nullifies OCR text to remove it at the next onDraw() drawing.
      */
     public void removeResultText() {
-        resultText = null;
+        resultBean = null;
     }
 }
