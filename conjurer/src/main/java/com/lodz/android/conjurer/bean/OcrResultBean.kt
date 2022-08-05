@@ -1,0 +1,86 @@
+package com.lodz.android.conjurer.bean
+
+import android.content.Context
+import android.graphics.*
+import androidx.annotation.ColorInt
+import androidx.annotation.ColorRes
+import androidx.core.content.ContextCompat
+
+/**
+ * OCR识别结果数据体
+ * @author zhouL
+ * @date 2022/8/4
+ */
+class OcrResultBean {
+
+    /** 识别结果图片 */
+    @JvmField
+    var bitmap: Bitmap? = null
+
+    /** 识别文字 */
+    @JvmField
+    var text: String = ""
+
+    /**  */
+    @JvmField
+    var wordConfidences: IntArray? = null
+
+    /**  */
+    @JvmField
+    var meanConfidence: Int = 0
+
+    /**  */
+    @JvmField
+    var regionBoundingBoxes: MutableList<Rect>? = null
+
+    /**  */
+    @JvmField
+    var textlineBoundingBoxes: MutableList<Rect>? = null
+
+    /**  */
+    @JvmField
+    var wordBoundingBoxes: MutableList<Rect>? = null
+
+    /**  */
+    @JvmField
+    var stripBoundingBoxes: MutableList<Rect>? = null
+
+    /**  */
+    @JvmField
+    var characterBoundingBoxes: MutableList<Rect>? = null
+
+    /**  */
+    @JvmField
+    var recognitionTimeRequired: Long = 0
+
+    /**  */
+    @JvmField
+    val timestamp: Long = System.currentTimeMillis()
+
+    /** 对识别图片内文字画框，颜色为[color] */
+    fun getAnnotatedBitmap(context: Context, @ColorRes color: Int): Bitmap? = getAnnotatedBitmap(ContextCompat.getColor(context, color))
+
+    /** 对识别图片内文字画框，颜色为[color] */
+    fun getAnnotatedBitmap(@ColorInt color: Int): Bitmap? {
+        val origin = bitmap ?: return null
+        val canvas = Canvas(origin)
+        val paint = Paint()
+        paint.alpha = 255
+        paint.color = color
+        paint.style = Paint.Style.STROKE
+        paint.strokeWidth = 2f
+
+        // 文字周围绘制边框
+        wordBoundingBoxes?.forEach {
+            canvas.drawRect(it, paint)
+        }
+        return origin
+    }
+
+    /** 获取识别图片宽高 */
+    fun getBitmapDimensions(): Point? {
+        val origin = bitmap ?: return null
+        return Point(origin.width, origin.height)
+    }
+
+}

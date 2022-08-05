@@ -704,7 +704,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         resultView.setVisibility(View.VISIBLE);
 
         ImageView bitmapImageView = (ImageView) findViewById(R.id.image_view);
-        Bitmap lastBitmap = bean.getAnnotatedBitmap();
+        Bitmap lastBitmap = bean.getAnnotatedBitmap(this, R.color.cj_color_00ccff);
         if (lastBitmap == null) {
             bitmapImageView.setVisibility(View.GONE);
         } else {
