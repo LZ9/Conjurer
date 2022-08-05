@@ -11,7 +11,6 @@ import com.googlecode.leptonica.android.Pixa;
 import com.googlecode.leptonica.android.ReadFile;
 import com.googlecode.tesseract.android.TessBaseAPI;
 import com.lodz.android.conjurer.bean.OcrResultBean;
-import com.lodz.android.conjurer.bean.OcrResultFailure;
 import com.lodz.android.conjurer.config.Constant;
 import com.lodz.android.conjurer.ocr.task.OcrRecognizeAsyncTask;
 
@@ -182,7 +181,9 @@ final class DecodeHandler extends Handler {
     private void sendContinuousOcrFailMessage() {
         Handler handler = activity.getHandler();
         if (handler != null) {
-            Message message = Message.obtain(handler, Constant.CJ_OCR_CONTINUOUS_DECODE_FAILED, new OcrResultFailure(timeRequired));
+            OcrResultBean bean = new OcrResultBean();
+            bean.recognitionTimeRequired = timeRequired;
+            Message message = Message.obtain(handler, Constant.CJ_OCR_CONTINUOUS_DECODE_FAILED, bean);
             message.sendToTarget();
         }
     }

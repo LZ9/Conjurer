@@ -45,7 +45,6 @@ import androidx.appcompat.widget.AppCompatToggleButton;
 import com.googlecode.tesseract.android.TessBaseAPI;
 import com.lodz.android.conjurer.R;
 import com.lodz.android.conjurer.bean.OcrResultBean;
-import com.lodz.android.conjurer.bean.OcrResultFailure;
 import com.lodz.android.conjurer.camera.CameraManager;
 import com.lodz.android.conjurer.camera.ShutterButton;
 import com.lodz.android.conjurer.config.Constant;
@@ -819,7 +818,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
      *
      * @param obj Metadata for the failed OCR request.
      */
-    void handleOcrContinuousDecode(OcrResultFailure obj) {
+    void handleOcrContinuousDecodeFail(OcrResultBean obj) {
         lastResult = null;
         viewfinderView.removeResultText();
 
@@ -830,7 +829,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
             // Color text delimited by '-' as red.
             statusViewBottom.setTextSize(14);
             CharSequence cs = setSpanBetweenTokens("OCR: " + sourceLanguageReadable + " - OCR failed - Time required: "
-                    + obj.getTimeRequired() + " ms", "-", new ForegroundColorSpan(0xFFFF0000));
+                    + obj.recognitionTimeRequired + " ms", "-", new ForegroundColorSpan(0xFFFF0000));
             statusViewBottom.setText(cs);
         }
     }
