@@ -16,7 +16,7 @@ import kotlin.math.abs
 class CameraConfigurationManager(private val context: Context) {
 
     private val MIN_PREVIEW_PIXELS = 470 * 320//最小预览分辨率
-    private val MAX_PREVIEW_PIXELS = 800 * 600//最大预览分辨率
+    private val MAX_PREVIEW_PIXELS = 1920 * 1080//最大预览分辨率
 
     private var mScreenResolution: Point? = null
     private var mCameraResolution: Point? = null
@@ -98,6 +98,7 @@ class CameraConfigurationManager(private val context: Context) {
             })
         var bestSize: Point? = null
         val screenAspectRatio = screenResolution.x.toFloat() / screenResolution.y.toFloat()
+        var diff = Float.POSITIVE_INFINITY
         for (previewSize in supportedPreviewSizes) {
             val realWidth = previewSize.width
             val realHeight = previewSize.height
@@ -113,8 +114,9 @@ class CameraConfigurationManager(private val context: Context) {
             }
             val aspectRatio = maybeFlippedWidth.toFloat() / maybeFlippedHeight.toFloat()
             val newDiff = abs(aspectRatio - screenAspectRatio)
-            if (newDiff < Float.POSITIVE_INFINITY) {
+            if (newDiff < diff) {
                 bestSize = Point(realWidth, realHeight)
+                diff = newDiff
             }
         }
         if (bestSize == null) {
