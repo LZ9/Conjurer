@@ -459,8 +459,7 @@ public  final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean> 
     /**
      * Returns the uncompressed size for a Gzipped file.
      *
-     * @param file
-     *          Gzipped file to get the size for
+     * @param zipFile Gzipped file to get the size for
      * @return Size when uncompressed, in bytes
      * @throws IOException
      */

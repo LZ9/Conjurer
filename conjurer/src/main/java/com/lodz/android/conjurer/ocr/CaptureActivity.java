@@ -68,54 +68,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
 
     private static final String TAG = CaptureActivity.class.getSimpleName();
 
-    // Note: These constants will be overridden by any default values defined in preferences.xml.
-
-    /** ISO 639-3 language code indicating the default recognition language. */
-    public static final String DEFAULT_SOURCE_LANGUAGE_CODE = "eng";
-
-    /** ISO 639-1 language code indicating the default target language for translation. */
-    public static final String DEFAULT_TARGET_LANGUAGE_CODE = "es";
-
-    /** The default online machine translation service to use. */
-    public static final String DEFAULT_TRANSLATOR = "Google Translate";
-
-    /** The default OCR engine to use. */
-    public static final String DEFAULT_OCR_ENGINE_MODE = "Tesseract";
-
-    /** The default page segmentation mode to use. */
-    public static final String DEFAULT_PAGE_SEGMENTATION_MODE = "Auto";
-
-    /** Whether to use autofocus by default. */
-    public static final boolean DEFAULT_TOGGLE_AUTO_FOCUS = true;
-
-    /** Whether to initially disable continuous-picture and continuous-video focus modes. */
-    public static final boolean DEFAULT_DISABLE_CONTINUOUS_FOCUS = true;
-
-    /** Whether to beep by default when the shutter button is pressed. */
-    public static final boolean DEFAULT_TOGGLE_BEEP = false;
-
-    /** Whether to initially show a looping, real-time OCR display. */
-    public static final boolean DEFAULT_TOGGLE_CONTINUOUS = false;
-
-    /** Whether to initially reverse the image returned by the camera. */
-    public static final boolean DEFAULT_TOGGLE_REVERSED_IMAGE = false;
-
-    /** Whether to enable the use of online translation services be default. */
-    public static final boolean DEFAULT_TOGGLE_TRANSLATION = true;
-
-    /** Whether the light should be initially activated by default. */
-    public static final boolean DEFAULT_TOGGLE_LIGHT = false;
-
-
-    /** Flag to display the real-time recognition results at the top of the scanning screen. */
-    private static final boolean CONTINUOUS_DISPLAY_RECOGNIZED_TEXT = true;
-
-    /** Flag to display recognition-related statistics on the scanning screen. */
-    private static final boolean CONTINUOUS_DISPLAY_METADATA = true;
-
-    /** Flag to enable display of the on-screen shutter button. */
-    private static final boolean DISPLAY_SHUTTER_BUTTON = true;
-
     private static final long CAMERA_FOCUS_DELAY = 100L;
 
     /** Languages for which Cube data is available. */
@@ -123,11 +75,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
             "ara", // Arabic
             "eng", // English
             "hin" // Hindi
-    };
-
-    /** Languages that require Cube, and cannot run using Tesseract. */
-    private static final String[] CUBE_REQUIRED_LANGUAGES = {
-            "ara" // Arabic
     };
 
     /** Resource to use for data file downloads. */
@@ -227,29 +174,26 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         lastResult = null;
         hasSurface = false;
 
-        // Camera shutter button
-        if (DISPLAY_SHUTTER_BUTTON) {
-            shutterButton = findViewById(R.id.shutter_button);
-            shutterButton.setOnShutterButtonListener(new ShutterButton.OnShutterButtonListener() {
-                @Override
-                public void onActionDownFocus(@NonNull ShutterButton btn, boolean pressed) {
-                    Log.v("testtag", "onShutterButtonFocus");
-                    requestDelayedAutoFocus();
-                }
+        shutterButton = findViewById(R.id.shutter_button);
+        shutterButton.setOnShutterButtonListener(new ShutterButton.OnShutterButtonListener() {
+            @Override
+            public void onActionDownFocus(@NonNull ShutterButton btn, boolean pressed) {
+                Log.v("testtag", "onShutterButtonFocus");
+                requestDelayedAutoFocus();
+            }
 
-                @Override
-                public void onActionUpClick(@NonNull ShutterButton btn) {
-                    Log.v("testtag", "onShutterButtonClick");
-                    if (isContinuousModeActive) {
-                        onShutterButtonPressContinuous();
-                    } else {
-                        if (handler != null) {
-                            handler.shutterButtonClick();
-                        }
+            @Override
+            public void onActionUpClick(@NonNull ShutterButton btn) {
+                Log.v("testtag", "onShutterButtonClick");
+                if (isContinuousModeActive) {
+                    onShutterButtonPressContinuous();
+                } else {
+                    if (handler != null) {
+                        handler.shutterButtonClick();
                     }
                 }
-            });
-        }
+            }
+        });
 
         ocrResultView = (TextView) findViewById(R.id.ocr_result_text_view);
         registerForContextMenu(ocrResultView);
@@ -430,9 +374,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         setStatusViewForContinuous();
         DecodeHandler.resetDecodeState();
         handler.resetState();
-        if (shutterButton != null && DISPLAY_SHUTTER_BUTTON) {
-            shutterButton.setVisibility(View.VISIBLE);
-        }
+        shutterButton.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -632,28 +574,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         }
         dialog = new ProgressDialog(this);
 
-        // If we have a language that only runs using Cube, then set the ocrEngineMode to Cube
-        if (ocrEngineMode != TessBaseAPI.OEM_CUBE_ONLY) {
-            for (String s : CUBE_REQUIRED_LANGUAGES) {
-                if (s.equals(languageCode)) {
-                    ocrEngineMode = TessBaseAPI.OEM_CUBE_ONLY;
-                }
-            }
-        }
-
-        // If our language doesn't support Cube, then set the ocrEngineMode to Tesseract
-        if (ocrEngineMode != TessBaseAPI.OEM_TESSERACT_ONLY) {
-            boolean cubeOk = false;
-            for (String s : CUBE_SUPPORTED_LANGUAGES) {
-                if (s.equals(languageCode)) {
-                    cubeOk = true;
-                }
-            }
-            if (!cubeOk) {
-                ocrEngineMode = TessBaseAPI.OEM_TESSERACT_ONLY;
-            }
-        }
-
         // Display the name of the OCR engine we're initializing in the indeterminate progress dialog box
         indeterminateDialog = new ProgressDialog(this);
         indeterminateDialog.setTitle("Please wait");
@@ -794,24 +714,20 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
 
         Integer meanConfidence = bean.meanConfidence;
 
-        if (CONTINUOUS_DISPLAY_RECOGNIZED_TEXT) {
-            // Display the recognized text on the screen
-            statusViewTop.setText(bean.text);
-            int scaledSize = Math.max(22, 32 - bean.text.length() / 4);
-            statusViewTop.setTextSize(TypedValue.COMPLEX_UNIT_SP, scaledSize);
-            statusViewTop.setTextColor(Color.BLACK);
-            statusViewTop.setBackgroundResource(R.color.status_top_text_background);
+        // 显示实时扫描文本结果
+        statusViewTop.setText(bean.text);
+        int scaledSize = Math.max(22, 32 - bean.text.length() / 4);
+        statusViewTop.setTextSize(TypedValue.COMPLEX_UNIT_SP, scaledSize);
+        statusViewTop.setTextColor(Color.BLACK);
+        statusViewTop.setBackgroundResource(R.color.status_top_text_background);
 
-            statusViewTop.getBackground().setAlpha(meanConfidence * (255 / 100));
-        }
+        statusViewTop.getBackground().setAlpha(meanConfidence * (255 / 100));
 
-        if (CONTINUOUS_DISPLAY_METADATA) {
-            // Display recognition-related metadata at the bottom of the screen
-            long recognitionTimeRequired = bean.recognitionTimeRequired;
-            statusViewBottom.setTextSize(14);
-            statusViewBottom.setText("OCR: " + sourceLanguageReadable + " - Mean confidence: " +
-                    meanConfidence.toString() + " - Time required: " + recognitionTimeRequired + " ms");
-        }
+        // 显示实时扫描统计信息
+        long recognitionTimeRequired = bean.recognitionTimeRequired;
+        statusViewBottom.setTextSize(14);
+        statusViewBottom.setText("OCR: " + sourceLanguageReadable + " - Mean confidence: " +
+                meanConfidence.toString() + " - Time required: " + recognitionTimeRequired + " ms");
     }
 
     /**
@@ -826,13 +742,11 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         // Reset the text in the recognized text box.
         statusViewTop.setText("");
 
-        if (CONTINUOUS_DISPLAY_METADATA) {
-            // Color text delimited by '-' as red.
-            statusViewBottom.setTextSize(14);
-            CharSequence cs = setSpanBetweenTokens("OCR: " + sourceLanguageReadable + " - OCR failed - Time required: "
-                    + obj.recognitionTimeRequired + " ms", "-", new ForegroundColorSpan(0xFFFF0000));
-            statusViewBottom.setText(cs);
-        }
+        // 将'-'号内的文本设置为红色
+        statusViewBottom.setTextSize(14);
+        CharSequence cs = setSpanBetweenTokens("OCR: " + sourceLanguageReadable + " - OCR failed - Time required: "
+                + obj.recognitionTimeRequired + " ms", "-", new ForegroundColorSpan(0xFFFF0000));
+        statusViewBottom.setText(cs);
     }
 
     /**
@@ -904,21 +818,17 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
      */
     private void resetStatusView() {
         resultView.setVisibility(View.GONE);
-        if (CONTINUOUS_DISPLAY_METADATA) {
-            statusViewBottom.setText("");
-            statusViewBottom.setTextSize(14);
-            statusViewBottom.setTextColor(getResources().getColor(R.color.status_text));
+        statusViewBottom.setText("");
+        statusViewBottom.setTextSize(14);
+        statusViewBottom.setTextColor(getResources().getColor(R.color.status_text));
 //            statusViewBottom.setVisibility(View.VISIBLE);
-        }
-        if (CONTINUOUS_DISPLAY_RECOGNIZED_TEXT) {
-            statusViewTop.setText("");
-            statusViewTop.setTextSize(14);
+
+        statusViewTop.setText("");
+        statusViewTop.setTextSize(14);
 //            statusViewTop.setVisibility(View.VISIBLE);
-        }
+
         viewfinderView.setVisibility(View.VISIBLE);
-        if (DISPLAY_SHUTTER_BUTTON) {
-            shutterButton.setVisibility(View.VISIBLE);
-        }
+        shutterButton.setVisibility(View.VISIBLE);
         lastResult = null;
         viewfinderView.removeResultText();
     }
@@ -936,18 +846,12 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
      */
     void setStatusViewForContinuous() {
         viewfinderView.removeResultText();
-        if (CONTINUOUS_DISPLAY_METADATA) {
-            statusViewBottom.setText("OCR: " + sourceLanguageReadable + " - waiting for OCR...");
-        }
+        statusViewBottom.setText("OCR: " + sourceLanguageReadable + " - waiting for OCR...");
     }
 
     @SuppressWarnings("unused")
     public void setButtonVisibility(boolean visible) {
-        if (shutterButton != null && visible == true && DISPLAY_SHUTTER_BUTTON) {
-            shutterButton.setVisibility(View.VISIBLE);
-        } else if (shutterButton != null) {
-            shutterButton.setVisibility(View.GONE);
-        }
+        shutterButton.setVisibility(visible ? View.VISIBLE : View.GONE);
     }
 
     /**
@@ -963,7 +867,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     void drawViewfinder() {
         viewfinderView.drawViewfinder();
     }
-
 
 
     /**
