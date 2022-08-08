@@ -40,6 +40,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.widget.AppCompatToggleButton;
 
 import com.googlecode.tesseract.android.TessBaseAPI;
@@ -228,16 +229,16 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
 
         // Camera shutter button
         if (DISPLAY_SHUTTER_BUTTON) {
-            shutterButton = (ShutterButton) findViewById(R.id.shutter_button);
+            shutterButton = findViewById(R.id.shutter_button);
             shutterButton.setOnShutterButtonListener(new ShutterButton.OnShutterButtonListener() {
                 @Override
-                public void onShutterButtonFocus(ShutterButton b, boolean pressed) {
+                public void onActionDownFocus(@NonNull ShutterButton btn, boolean pressed) {
                     Log.v("testtag", "onShutterButtonFocus");
                     requestDelayedAutoFocus();
                 }
 
                 @Override
-                public void onShutterButtonClick(ShutterButton b) {
+                public void onActionUpClick(@NonNull ShutterButton btn) {
                     Log.v("testtag", "onShutterButtonClick");
                     if (isContinuousModeActive) {
                         onShutterButtonPressContinuous();
