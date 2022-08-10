@@ -13,7 +13,6 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.text.ClipboardManager;
@@ -70,12 +69,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
 
     private static final long CAMERA_FOCUS_DELAY = 100L;
 
-    /** Languages for which Cube data is available. */
-    public static final String[] CUBE_SUPPORTED_LANGUAGES = {
-            "ara", // Arabic
-            "eng", // English
-            "hin" // Hindi
-    };
+
 
     /** Resource to use for data file downloads. */
     public static final String DOWNLOAD_BASE = "http://tesseract-ocr.googlecode.com/files/";
@@ -86,13 +80,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     /** Destination filename for orientation and script detection (OSD) data. */
     public static final String OSD_FILENAME_BASE = "osd.traineddata";
 
-    /** Minimum mean confidence score necessary to not reject single-shot OCR result. Currently unused. */
-    static final int MINIMUM_MEAN_CONFIDENCE = 0; // 0 means don't reject any scored results
-
-    // Context menu
-    private static final int SETTINGS_ID = Menu.FIRST;
-    private static final int ABOUT_ID = Menu.FIRST + 1;
-
     // Options menu, for copy to clipboard
     private static final int OPTIONS_COPY_RECOGNIZED_TEXT_ID = Menu.FIRST;
     private static final int OPTIONS_SHARE_RECOGNIZED_TEXT_ID = Menu.FIRST + 1;
@@ -100,9 +87,9 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     public static final int REQUEST_CODE = 700;
     public static final String EXTRA_OCR_RESULT = "extra_ocr_result";
 
-    public static void start(Activity activity) {
-        Intent starter = new Intent(activity, CaptureActivity.class);
-        activity.startActivityForResult(starter, REQUEST_CODE);
+    public static void start(Context context) {
+        Intent starter = new Intent(context, CaptureActivity.class);
+        context.startActivity(starter);
     }
 
     private CameraManager cameraManager;
@@ -116,7 +103,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     private View resultView;
     private OcrResultBean lastResult;
     private boolean hasSurface;
-    private TessBaseAPI baseApi; // Java interface for the Tesseract OCR engine
+    private TessBaseAPI mBaseApi; // Java interface for the Tesseract OCR engine
     private String sourceLanguageCodeOcr = "eng"; // ISO 639-3 language code
     private String sourceLanguageReadable = "English"; // Language name, for example, "English"
     private int ocrEngineMode = TessBaseAPI.OEM_TESSERACT_ONLY;
@@ -133,7 +120,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     }
 
     TessBaseAPI getBaseApi() {
-        return baseApi;
+        return mBaseApi;
     }
 
     public CameraManager getCameraManager() {
@@ -143,8 +130,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
-
-
 
         Window window = getWindow();
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -308,11 +293,11 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         // Comment out the following block to test non-OCR functions without an SD card
 
         // Do OCR engine initialization, if necessary
-        boolean doNewInit = (baseApi == null) || !sourceLanguageCodeOcr.equals(previousSourceLanguageCodeOcr) ||
+        boolean doNewInit = (mBaseApi == null) || !sourceLanguageCodeOcr.equals(previousSourceLanguageCodeOcr) ||
                 ocrEngineMode != previousOcrEngineMode;
         if (doNewInit) {
             // Initialize the OCR engine
-            File storageDirectory = getStorageDirectory();
+            File storageDirectory = this.getExternalFilesDir("");
             if (storageDirectory != null) {
                 initOcrEngine(storageDirectory, sourceLanguageCodeOcr, sourceLanguageReadable);
             }
@@ -339,10 +324,10 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         if (handler != null) {
             handler.resetState();
         }
-        if (baseApi != null) {
-            baseApi.setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO_OSD);
-            baseApi.setVariable(TessBaseAPI.VAR_CHAR_BLACKLIST, "");//黑名单
-            baseApi.setVariable(TessBaseAPI.VAR_CHAR_WHITELIST, "Xx0123456789");//白名单
+        if (mBaseApi != null) {
+            mBaseApi.setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO_OSD);
+            mBaseApi.setVariable(TessBaseAPI.VAR_CHAR_BLACKLIST, "");//黑名单
+            mBaseApi.setVariable(TessBaseAPI.VAR_CHAR_WHITELIST, "Xx0123456789");//白名单
         }
 
         if (hasSurface) {
@@ -441,8 +426,8 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
 
     @Override
     protected void onDestroy() {
-        if (baseApi != null) {
-            baseApi.end();
+        if (mBaseApi != null) {
+            mBaseApi.end();
         }
         super.onDestroy();
     }
@@ -488,74 +473,11 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         return super.onKeyDown(keyCode, event);
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        //    MenuInflater inflater = getMenuInflater();
-        //    inflater.inflate(R.menu.options_menu, menu);
-        super.onCreateOptionsMenu(menu);
-        menu.add(0, SETTINGS_ID, 0, "Settings").setIcon(android.R.drawable.ic_menu_preferences);
-        menu.add(0, ABOUT_ID, 0, "About").setIcon(android.R.drawable.ic_menu_info_details);
-        return true;
-    }
-
     public void surfaceDestroyed(SurfaceHolder holder) {
         hasSurface = false;
     }
 
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-    }
-
-    /** Sets the necessary language code values for the given OCR language. */
-    private boolean setSourceLanguage(String languageCode) {
-        sourceLanguageCodeOcr = languageCode;
-        return true;
-    }
-
-    /** Finds the proper location on the SD card where we can save files. */
-    private File getStorageDirectory() {
-        //Log.d(TAG, "getStorageDirectory(): API level is " + Integer.valueOf(android.os.Build.VERSION.SDK_INT));
-
-        String state = null;
-        try {
-            state = Environment.getExternalStorageState();
-        } catch (RuntimeException e) {
-            Log.e(TAG, "Is the SD card visible?", e);
-            showErrorMessage("Error", "Required external storage (such as an SD card) is unavailable.");
-        }
-
-        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
-
-            // We can read and write the media
-            //    	if (Integer.valueOf(android.os.Build.VERSION.SDK_INT) > 7) {
-            // For Android 2.2 and above
-
-            try {
-                return getExternalFilesDir(Environment.MEDIA_MOUNTED);
-            } catch (NullPointerException e) {
-                // We get an error here if the SD card is visible, but full
-                Log.e(TAG, "External storage is unavailable");
-                showErrorMessage("Error", "Required external storage (such as an SD card) is full or unavailable.");
-            }
-
-            //        } else {
-            //          // For Android 2.1 and below, explicitly give the path as, for example,
-            //          // "/mnt/sdcard/Android/data/edu.sfsu.cs.orange.ocr/files/"
-            //          return new File(Environment.getExternalStorageDirectory().toString() + File.separator +
-            //                  "Android" + File.separator + "data" + File.separator + getPackageName() +
-            //                  File.separator + "files" + File.separator);
-            //        }
-
-        } else if (Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
-            // We can only read the media
-            Log.e(TAG, "External storage is read-only");
-            showErrorMessage("Error", "Required external storage (such as an SD card) is unavailable for data storage.");
-        } else {
-            // Something else is wrong. It may be one of many other states, but all we need
-            // to know is we can neither read nor write
-            Log.e(TAG, "External storage is unavailable");
-            showErrorMessage("Error", "Required external storage (such as an SD card) is unavailable or corrupted.");
-        }
-        return null;
     }
 
     /**
@@ -594,8 +516,8 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         }
 
         // Start AsyncTask to install language data and init OCR
-        baseApi = new TessBaseAPI();
-        new OcrInitAsyncTask(this, baseApi, dialog, indeterminateDialog, languageCode, languageName, ocrEngineMode)
+        mBaseApi = new TessBaseAPI();
+        new OcrInitAsyncTask(this, mBaseApi, dialog, indeterminateDialog, languageCode, languageName, ocrEngineMode)
                 .execute(storageRoot.toString());
     }
 

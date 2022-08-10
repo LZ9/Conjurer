@@ -23,4 +23,16 @@ object Constant {
     const val CJ_OCR_CONTINUOUS_DECODE = 1008
 
 
+    /** 默认识别的语言 */
+    const val DEFAULT_LANGUAGE = "eng"
+    /** 默认英文训练数据 */
+    const val DEFAULT_ENG_TRAINEDDATA = "eng.traineddata.zip"
+    /** 默认osd训练数据 */
+    const val DEFAULT_OSD_TRAINEDDATA = "osd.traineddata.zip"
+    /** 默认训练数据的存放文件夹名称 */
+    const val DEFAULT_TRAINEDDATA_DIR_NAME = "tessdata"
+    /** 默认识别黑名单 */
+    const val DEFAULT_BLACKLIST = "!@#$%^&*()_+=-[]}{;:'\"\\|~`,./<>?"
+    /** 默认识别白名单 */
+    const val DEFAULT_WHITELIST = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
 }

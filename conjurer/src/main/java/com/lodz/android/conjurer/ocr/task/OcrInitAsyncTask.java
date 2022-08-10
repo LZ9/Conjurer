@@ -34,6 +34,14 @@ import java.util.zip.ZipInputStream;
  * thread.
  */
 public  final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean> {
+
+    /** Languages for which Cube data is available. */
+    public static final String[] CUBE_SUPPORTED_LANGUAGES = {
+            "ara", // Arabic
+            "eng", // English
+            "hin" // Hindi
+    };
+
     private static final String TAG = OcrInitAsyncTask.class.getSimpleName();
 
     /** Suffixes of required data files for Cube. */
@@ -43,7 +51,7 @@ public  final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean> 
             ".cube.lm",
             ".cube.nn",
             ".cube.params",
-            //".cube.size", // This file is not available for Hindi
+            ".cube.size",
             ".cube.word-freq",
             ".tesseract_cube.nn",
             ".traineddata"
@@ -114,7 +122,7 @@ public  final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean> 
         // Example Tesseract data filename: "eng.traineddata"
         String destinationFilenameBase = languageCode + ".traineddata";
         boolean isCubeSupported = false;
-        for (String s : CaptureActivity.CUBE_SUPPORTED_LANGUAGES) {
+        for (String s : CUBE_SUPPORTED_LANGUAGES) {
             if (s.equals(languageCode)) {
                 isCubeSupported = true;
             }
@@ -160,8 +168,7 @@ public  final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean> 
 
         // If language data files are not present, install them
         boolean installSuccess = false;
-        if (!tesseractTestFile.exists()
-                || (isCubeSupported && !isAllCubeDataInstalled)) {
+        if (!tesseractTestFile.exists()  || (isCubeSupported && !isAllCubeDataInstalled)) {
             Log.d(TAG, "Language data for " + languageCode + " not found in " + tessdataDir.toString());
             deleteCubeDataFiles(tessdataDir);
 
@@ -170,8 +177,7 @@ public  final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean> 
                 Log.d(TAG, "Checking for language data (" + destinationFilenameBase
                         + ".zip) in application assets...");
                 // Check for a file like "eng.traineddata.zip" or "tesseract-ocr-3.01.eng.tar.zip"
-                installSuccess = installFromAssets(destinationFilenameBase + ".zip", tessdataDir,
-                        downloadFile);
+                installSuccess = installFromAssets(destinationFilenameBase + ".zip", tessdataDir, downloadFile);
             } catch (IOException e) {
                 Log.e(TAG, "IOException", e);
             } catch (Exception e) {
@@ -568,8 +574,7 @@ public  final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean> 
      */
     private boolean installFromAssets(String sourceFilename, File modelRoot,
                                       File destinationFile) throws IOException {
-        String extension = sourceFilename.substring(sourceFilename.lastIndexOf('.'),
-                sourceFilename.length());
+        String extension = sourceFilename.substring(sourceFilename.lastIndexOf('.'), sourceFilename.length());
         try {
             if (extension.equals(".zip")) {
                 return installZipFromAssets(sourceFilename, modelRoot, destinationFile);
@@ -597,16 +602,13 @@ public  final class OcrInitAsyncTask extends AsyncTask<String, String, Boolean> 
      * @throws IOException
      * @throws FileNotFoundException
      */
-    private boolean installZipFromAssets(String sourceFilename,
-                                         File destinationDir, File destinationFile) throws IOException,
-            FileNotFoundException {
+    private boolean installZipFromAssets(String sourceFilename, File destinationDir, File destinationFile) throws IOException, FileNotFoundException {
         // Attempt to open the zip archive
         publishProgress("Uncompressing data for " + languageName + "...", "0");
         ZipInputStream inputStream = new ZipInputStream(context.getAssets().open(sourceFilename));
 
         // Loop through all the files and folders in the zip archive (but there should just be one)
-        for (ZipEntry entry = inputStream.getNextEntry(); entry != null; entry = inputStream
-                .getNextEntry()) {
+        for (ZipEntry entry = inputStream.getNextEntry(); entry != null; entry = inputStream.getNextEntry()) {
             destinationFile = new File(destinationDir, entry.getName());
 
             if (entry.isDirectory()) {

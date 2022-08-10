@@ -5,11 +5,18 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.View
+import com.googlecode.tesseract.android.TessBaseAPI
+import com.lodz.android.conjurer.bean.InitStatus
+import com.lodz.android.conjurer.config.Constant
 import com.lodz.android.conjurer.ocr.CaptureActivity
+import com.lodz.android.conjurer.ocr.Conjurer.Companion.create
+import com.lodz.android.conjurer.ocr.OnConjurerListener
 import com.lodz.android.conjurerdemo.databinding.ActivityMainBinding
+import com.lodz.android.corekt.anko.append
 import com.lodz.android.corekt.anko.goAppDetailSetting
 import com.lodz.android.corekt.anko.isPermissionGranted
 import com.lodz.android.corekt.anko.toastShort
+import com.lodz.android.corekt.utils.DateUtils
 import com.lodz.android.pandora.base.activity.BaseActivity
 import com.lodz.android.pandora.utils.viewbinding.bindingLayout
 import permissions.dispatcher.PermissionRequest
@@ -41,8 +48,27 @@ class MainActivity : BaseActivity() {
         super.setListeners()
 
         mBinding.scanBtn.setOnClickListener {
-            CaptureActivity.start(this@MainActivity)
+
+            create()
+                .setLanguage(Constant.DEFAULT_LANGUAGE)
+                .setEngineMode(TessBaseAPI.OEM_TESSERACT_ONLY)
+                .setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO_OSD)
+                .setBlackList("")
+                .setWhiteList("Xx0123456789")
+                .setOnConjurerListener(object : OnConjurerListener {
+                    override fun onInit(status: InitStatus) {
+                        addLog("${DateUtils.getCurrentFormatString(DateUtils.TYPE_10)} onInit : ${status.msg}")
+                    }
+                    override fun onError(t: Throwable, msg: String) {
+                        addLog("${DateUtils.getCurrentFormatString(DateUtils.TYPE_10)} error : ${t.message} , $msg")
+                    }
+                })
+                .build(this, true)
         }
+    }
+
+    private fun addLog(log: String) {
+        mBinding.resultTv.text = log.append("\n").append(mBinding.resultTv.text)
     }
 
     override fun initData() {
