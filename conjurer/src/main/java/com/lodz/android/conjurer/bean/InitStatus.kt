@@ -8,5 +8,6 @@ package com.lodz.android.conjurer.bean
 enum class InitStatus(val id: Int, val msg: String) {
     START(1, "开始初始化"),
     CHECK_LOCAL_TRAINED_DATA(2, "正在校验本地训练文件"),
-    COMPLETE(3, "初始化完成"),
+    CHECK_LOCAL_TRAINED_DATA_SUCCESS(3, "校验本地训练文件完成"),
+    COMPLETE(4, "初始化完成"),
 }

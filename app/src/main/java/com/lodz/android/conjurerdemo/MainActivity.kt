@@ -57,13 +57,13 @@ class MainActivity : BaseActivity() {
                 .setWhiteList("Xx0123456789")
                 .setOnConjurerListener(object : OnConjurerListener {
                     override fun onInit(status: InitStatus) {
-                        addLog("${DateUtils.getCurrentFormatString(DateUtils.TYPE_10)} onInit : ${status.msg}")
+                        addLog("${Thread.currentThread().name} onInit : ${status.msg}")
                     }
                     override fun onError(t: Throwable, msg: String) {
-                        addLog("${DateUtils.getCurrentFormatString(DateUtils.TYPE_10)} error : ${t.message} , $msg")
+                        addLog("${Thread.currentThread().name} error : ${t.message} , $msg")
                     }
                 })
-                .build(this, true)
+                .recogAsync(this,"")
         }
     }
 

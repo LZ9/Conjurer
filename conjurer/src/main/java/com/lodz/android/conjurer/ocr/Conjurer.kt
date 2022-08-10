@@ -110,29 +110,29 @@ class Conjurer private constructor(){
         return this
     }
 
-    /** 完成构建，上下文[context]，是否打开相机[isOpenCamera]（默认打开） */
-    fun build(context: Context, isOpenCamera: Boolean = true) {
+    /** 启动相机 */
+    fun openCamera(context: Context) {
         MainScope().launch {
-            checkPath(context)
-            mListener?.onInit(InitStatus.START)
-            val path = mDataPath + Constant.DEFAULT_TRAINEDDATA_DIR_NAME + File.separator
-            val dir = File(path)
-            dir.mkdirs()//创建训练数据存放目录
-            if (!dir.exists()) {
-                mListener?.onError(IllegalArgumentException("couldn't create $path"), "无法创建训练数据存放目录")
+            val isCheckSuccess = checkLocalTrainedData(context)
+            if (!isCheckSuccess) {
                 return@launch
             }
-            mListener?.onInit(InitStatus.CHECK_LOCAL_TRAINED_DATA)
-            for (zipFileName in mTrainedDataZipFileNames) {
-                var hasTrainedData: Pair<Boolean, Throwable?>
-                withContext(Dispatchers.IO) {
-                    hasTrainedData = OcrUtils.installZipFromAssets(context, path, zipFileName) //训练文件是否安装
-                }
-                if (!hasTrainedData.first) {
-                    mListener?.onError(hasTrainedData.second ?: IllegalArgumentException("trained data install fail"), "训练文件安装失败")
-                    return@launch
-                }
+            runOnMain { mListener?.onInit(InitStatus.COMPLETE) }
+            CaptureActivity.start(context)
+        }
+    }
+
+    /** 异步识别，上下文[context]，图片的[base64] */
+    fun recogAsync(context: Context, base64: String) {
+        MainScope().launch {
+            var isCheckSuccess: Boolean
+            withContext(Dispatchers.IO) {
+                isCheckSuccess = checkLocalTrainedData(context)
             }
+            if (!isCheckSuccess){
+                return@launch
+            }
+            //完成本地训练文件校验
             if (mTessApi == null) {
                 mTessApi = TessBaseAPI()
                 val isSuccess = mTessApi?.init(mDataPath, mLanguage, mEngineMode) ?: false
@@ -145,13 +145,37 @@ class Conjurer private constructor(){
             mTessApi?.setVariable(TessBaseAPI.VAR_CHAR_BLACKLIST, mBlackList)//黑名单
             mTessApi?.setVariable(TessBaseAPI.VAR_CHAR_WHITELIST, mWhiteList)//白名单
             mListener?.onInit(InitStatus.COMPLETE)
-            if (isOpenCamera) {
-                CaptureActivity.start(context)
+            if (base64.isEmpty()){
+                return@launch
             }
+            // TODO: 2022/8/10 异步识别
         }
     }
 
-    /** 核对文件路径 */
+    /** 校验本地训练文件，上下文[context] */
+    private suspend fun checkLocalTrainedData(context: Context): Boolean {
+        checkPath(context)
+        runOnMain { mListener?.onInit(InitStatus.START) }
+        val path = mDataPath + Constant.DEFAULT_TRAINEDDATA_DIR_NAME + File.separator
+        val dir = File(path)
+        dir.mkdirs()//创建训练数据存放目录
+        if (!dir.exists()) {
+            runOnMain { mListener?.onError(IllegalArgumentException("couldn't create $path"), "无法创建训练数据存放目录") }
+            return false
+        }
+        runOnMain { mListener?.onInit(InitStatus.CHECK_LOCAL_TRAINED_DATA) }
+        for (zipFileName in mTrainedDataZipFileNames) {
+            val hasTrainedData = OcrUtils.installZipFromAssets(context, path, zipFileName) //训练文件是否安装
+            if (!hasTrainedData.first) {
+                runOnMain { mListener?.onError(hasTrainedData.second ?: IllegalArgumentException("trained data install fail"), "训练文件安装失败") }
+                return false
+            }
+        }
+        runOnMain { mListener?.onInit(InitStatus.CHECK_LOCAL_TRAINED_DATA_SUCCESS) }
+        return true
+    }
+
+    /** 核对文件路径，上下文[context]  */
     private fun checkPath(context: Context) {
         if (mDataPath.isEmpty()) {
             mDataPath = context.getExternalFilesDir("")?.absolutePath ?: context.cacheDir.absolutePath
@@ -160,4 +184,10 @@ class Conjurer private constructor(){
             mDataPath += File.separator
         }
     }
+
+    private suspend fun runOnMain(action: () -> Unit) {
+        withContext(Dispatchers.Main) { action() }
+    }
+
+
 }
