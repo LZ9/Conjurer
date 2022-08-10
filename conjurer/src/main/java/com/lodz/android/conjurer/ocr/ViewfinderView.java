@@ -1,5 +1,6 @@
 package com.lodz.android.conjurer.ocr;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
@@ -10,6 +11,8 @@ import android.graphics.Paint.Style;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 
 import com.lodz.android.conjurer.R;
@@ -377,5 +380,81 @@ public final class ViewfinderView extends View {
      */
     public void removeResultText() {
         resultBean = null;
+    }
+
+    private int lastX = -1;
+    private int lastY = -1;
+
+    @SuppressLint("ClickableViewAccessibility")
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_UP:
+                lastX = -1;
+                lastY = -1;
+                return true;
+            case MotionEvent.ACTION_MOVE:
+                int currentX = (int) event.getX();
+                int currentY = (int) event.getY();
+
+                try {
+                    Rect rect = cameraManager.getFramingRect();
+
+                    final int BUFFER = 50;
+                    final int BIG_BUFFER = 60;
+                    if (lastX >= 0) {
+                        // Adjust the size of the viewfinder rectangle. Check if the touch event occurs in the corner areas first, because the regions overlap.
+                        if (((currentX >= rect.left - BIG_BUFFER && currentX <= rect.left + BIG_BUFFER) || (lastX >= rect.left - BIG_BUFFER && lastX <= rect.left + BIG_BUFFER))
+                                && ((currentY <= rect.top + BIG_BUFFER && currentY >= rect.top - BIG_BUFFER) || (lastY <= rect.top + BIG_BUFFER && lastY >= rect.top - BIG_BUFFER))) {
+                            // Top left corner: adjust both top and left sides
+                            cameraManager.adjustFramingRect( 2 * (lastX - currentX), 2 * (lastY - currentY));
+                            removeResultText();
+                        } else if (((currentX >= rect.right - BIG_BUFFER && currentX <= rect.right + BIG_BUFFER) || (lastX >= rect.right - BIG_BUFFER && lastX <= rect.right + BIG_BUFFER))
+                                && ((currentY <= rect.top + BIG_BUFFER && currentY >= rect.top - BIG_BUFFER) || (lastY <= rect.top + BIG_BUFFER && lastY >= rect.top - BIG_BUFFER))) {
+                            // Top right corner: adjust both top and right sides
+                            cameraManager.adjustFramingRect( 2 * (currentX - lastX), 2 * (lastY - currentY));
+                            removeResultText();
+                        } else if (((currentX >= rect.left - BIG_BUFFER && currentX <= rect.left + BIG_BUFFER) || (lastX >= rect.left - BIG_BUFFER && lastX <= rect.left + BIG_BUFFER))
+                                && ((currentY <= rect.bottom + BIG_BUFFER && currentY >= rect.bottom - BIG_BUFFER) || (lastY <= rect.bottom + BIG_BUFFER && lastY >= rect.bottom - BIG_BUFFER))) {
+                            // Bottom left corner: adjust both bottom and left sides
+                            cameraManager.adjustFramingRect(2 * (lastX - currentX), 2 * (currentY - lastY));
+                            removeResultText();
+                        } else if (((currentX >= rect.right - BIG_BUFFER && currentX <= rect.right + BIG_BUFFER) || (lastX >= rect.right - BIG_BUFFER && lastX <= rect.right + BIG_BUFFER))
+                                && ((currentY <= rect.bottom + BIG_BUFFER && currentY >= rect.bottom - BIG_BUFFER) || (lastY <= rect.bottom + BIG_BUFFER && lastY >= rect.bottom - BIG_BUFFER))) {
+                            // Bottom right corner: adjust both bottom and right sides
+                            cameraManager.adjustFramingRect(2 * (currentX - lastX), 2 * (currentY - lastY));
+                            removeResultText();
+                        } else if (((currentX >= rect.left - BUFFER && currentX <= rect.left + BUFFER) || (lastX >= rect.left - BUFFER && lastX <= rect.left + BUFFER))
+                                && ((currentY <= rect.bottom && currentY >= rect.top) || (lastY <= rect.bottom && lastY >= rect.top))) {
+                            // Adjusting left side: event falls within BUFFER pixels of left side, and between top and bottom side limits
+                            cameraManager.adjustFramingRect(2 * (lastX - currentX), 0);
+                            removeResultText();
+                        } else if (((currentX >= rect.right - BUFFER && currentX <= rect.right + BUFFER) || (lastX >= rect.right - BUFFER && lastX <= rect.right + BUFFER))
+                                && ((currentY <= rect.bottom && currentY >= rect.top) || (lastY <= rect.bottom && lastY >= rect.top))) {
+                            // Adjusting right side: event falls within BUFFER pixels of right side, and between top and bottom side limits
+                            cameraManager.adjustFramingRect(2 * (currentX - lastX), 0);
+                            removeResultText();
+                        } else if (((currentY <= rect.top + BUFFER && currentY >= rect.top - BUFFER) || (lastY <= rect.top + BUFFER && lastY >= rect.top - BUFFER))
+                                && ((currentX <= rect.right && currentX >= rect.left) || (lastX <= rect.right && lastX >= rect.left))) {
+                            // Adjusting top side: event falls within BUFFER pixels of top side, and between left and right side limits
+                            cameraManager.adjustFramingRect(0, 2 * (lastY - currentY));
+                            removeResultText();
+                        } else if (((currentY <= rect.bottom + BUFFER && currentY >= rect.bottom - BUFFER) || (lastY <= rect.bottom + BUFFER && lastY >= rect.bottom - BUFFER))
+                                && ((currentX <= rect.right && currentX >= rect.left) || (lastX <= rect.right && lastX >= rect.left))) {
+                            // Adjusting bottom side: event falls within BUFFER pixels of bottom side, and between left and right side limits
+                            cameraManager.adjustFramingRect(0, 2 * (currentY - lastY));
+                            removeResultText();
+                        }
+                    }
+                } catch (NullPointerException e) {
+                    Log.e("TAG", "Framing rect not available", e);
+                }
+                invalidate();
+                lastX = currentX;
+                lastY = currentY;
+                return true;
+        }
+        return super.onTouchEvent(event);
     }
 }
