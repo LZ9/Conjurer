@@ -1,5 +1,4 @@
-package com.lodz.android.conjurer.ocr;
-
+package com.lodz.android.conjurer.widget
 
 /**
  * The purpose of this class hierarchy is to abstract different bitmap implementations across
@@ -10,15 +9,7 @@ package com.lodz.android.conjurer.ocr;
  *
  * The code for this class was adapted from the ZXing project: http://code.google.com/p/zxing
  */
-public abstract class LuminanceSource {
-
-    private final int width;
-    private final int height;
-
-    protected LuminanceSource(int width, int height) {
-        this.width = width;
-        this.height = height;
-    }
+abstract class LuminanceSource(private val width: Int, private val height: Int) {
 
     /**
      * Fetches one row of luminance data from the underlying platform's bitmap. Values range from
@@ -29,41 +20,35 @@ public abstract class LuminanceSource {
      *
      * @param y The row to fetch, 0 <= y < getHeight().
      * @param row An optional preallocated array. If null or too small, it will be ignored.
-     *            Always use the returned object, and ignore the .length of the array.
+     *              Always use the returned object, and ignore the .length of the array.
      * @return An array containing the luminance data.
      */
-    public abstract byte[] getRow(int y, byte[] row);
+    abstract fun getRow(y: Int, row: ByteArray?): ByteArray
 
     /**
      * Fetches luminance data for the underlying bitmap. Values should be fetched using:
      * int luminance = array[y * width + x] & 0xff;
      *
      * @return A row-major 2D array of luminance values. Do not use result.length as it may be
-     *         larger than width * height bytes on some platforms. Do not modify the contents
-     *         of the result.
+     *          larger than width * height bytes on some platforms. Do not modify the contents
+     *          of the result.
      */
-    public abstract byte[] getMatrix();
+    abstract fun getMatrix(): ByteArray
 
     /**
      * @return The width of the bitmap.
      */
-    public final int getWidth() {
-        return width;
-    }
+    fun getWidth(): Int = width
 
     /**
      * @return The height of the bitmap.
      */
-    public final int getHeight() {
-        return height;
-    }
+    fun getHeight(): Int = height
 
     /**
      * @return Whether this subclass supports cropping.
      */
-    public boolean isCropSupported() {
-        return true;
-    }
+    open fun isCropSupported(): Boolean = true
 
     /**
      * Returns a new object with cropped image data. Implementations may keep a reference to the
@@ -75,24 +60,23 @@ public abstract class LuminanceSource {
      * @param height The height of the rectangle to crop.
      * @return A cropped version of this object.
      */
-    public LuminanceSource crop(int left, int top, int width, int height) {
-        throw new RuntimeException("This luminance source does not support cropping.");
+    open fun crop(left: Int, top: Int, width: Int, height: Int): LuminanceSource {
+        throw RuntimeException("This luminance source does not support cropping.")
     }
 
     /**
      * @return Whether this subclass supports counter-clockwise rotation.
      */
-    public boolean isRotateSupported() {
-        return false;
-    }
+    open fun isRotateSupported(): Boolean = false
 
     /**
      * Returns a new object with rotated image data. Only callable if isRotateSupported() is true.
      *
      * @return A rotated version of this object.
      */
-    public LuminanceSource rotateCounterClockwise() {
-        throw new RuntimeException("This luminance source does not support rotation.");
+    open fun rotateCounterClockwise(): LuminanceSource {
+        throw RuntimeException("This luminance source does not support rotation.")
     }
-
 }
+
+

@@ -63,7 +63,7 @@ class MainActivity : BaseActivity() {
                         addLog("${Thread.currentThread().name} error : ${t.message} , $msg")
                     }
                 })
-                .recogAsync(this,"")
+                .openCamera(this)
         }
     }
 

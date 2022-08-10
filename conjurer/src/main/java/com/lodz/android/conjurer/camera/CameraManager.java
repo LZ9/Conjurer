@@ -8,7 +8,7 @@ import android.hardware.Camera;
 import android.os.Handler;
 import android.view.SurfaceHolder;
 
-import com.lodz.android.conjurer.ocr.PlanarYUVLuminanceSource;
+import com.lodz.android.conjurer.widget.PlanarYUVLuminanceSource;
 
 import java.io.IOException;
 

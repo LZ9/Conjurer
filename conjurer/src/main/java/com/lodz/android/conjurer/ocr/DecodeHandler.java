@@ -13,6 +13,7 @@ import com.googlecode.tesseract.android.TessBaseAPI;
 import com.lodz.android.conjurer.bean.OcrResultBean;
 import com.lodz.android.conjurer.config.Constant;
 import com.lodz.android.conjurer.ocr.task.OcrRecognizeAsyncTask;
+import com.lodz.android.conjurer.widget.PlanarYUVLuminanceSource;
 
 /**
  * Class to send bitmap data for OCR.
