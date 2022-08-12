@@ -14,19 +14,14 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
-import android.text.ClipboardManager;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.style.CharacterStyle;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.util.TypedValue;
-import android.view.ContextMenu;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Gravity;
 import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -38,10 +33,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatToggleButton;
 
 import com.googlecode.tesseract.android.TessBaseAPI;
 import com.lodz.android.conjurer.R;
+import com.lodz.android.conjurer.bean.OcrRequestBean;
 import com.lodz.android.conjurer.bean.OcrResultBean;
 import com.lodz.android.conjurer.camera.CameraManager;
 import com.lodz.android.conjurer.camera.ShutterButton;
@@ -67,26 +64,11 @@ public final class CaptureActivity extends Activity {
 
     private static final long CAMERA_FOCUS_DELAY = 100L;
 
+    public static final String EXTRA_OCR_REQUEST = "extra_ocr_request";
 
-
-    /** Resource to use for data file downloads. */
-    public static final String DOWNLOAD_BASE = "http://tesseract-ocr.googlecode.com/files/";
-
-    /** Download filename for orientation and script detection (OSD) data. */
-    public static final String OSD_FILENAME = "tesseract-ocr-3.01.osd.tar";
-
-    /** Destination filename for orientation and script detection (OSD) data. */
-    public static final String OSD_FILENAME_BASE = "osd.traineddata";
-
-    // Options menu, for copy to clipboard
-    private static final int OPTIONS_COPY_RECOGNIZED_TEXT_ID = Menu.FIRST;
-    private static final int OPTIONS_SHARE_RECOGNIZED_TEXT_ID = Menu.FIRST + 1;
-
-    public static final int REQUEST_CODE = 700;
-    public static final String EXTRA_OCR_RESULT = "extra_ocr_result";
-
-    public static void start(Context context) {
+    public static void start(Context context, OcrRequestBean bean) {
         Intent starter = new Intent(context, CaptureActivity.class);
+        starter.putExtra(EXTRA_OCR_REQUEST, bean);
         context.startActivity(starter);
     }
 
@@ -126,19 +108,18 @@ public final class CaptureActivity extends Activity {
     }
 
     @Override
-    public void onCreate(Bundle icicle) {
-        super.onCreate(icicle);
-
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         Window window = getWindow();
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.activity_capture);
-        viewfinderView = (ViewfinderView) findViewById(R.id.viewfinder_view);
+        viewfinderView = findViewById(R.id.viewfinder_view);
         resultView = findViewById(R.id.result_view);
 
-        statusViewBottom = (TextView) findViewById(R.id.status_view_bottom);
+        statusViewBottom = findViewById(R.id.status_view_bottom);
         registerForContextMenu(statusViewBottom);
-        statusViewTop = (TextView) findViewById(R.id.status_view_top);
+        statusViewTop = findViewById(R.id.status_view_top);
         registerForContextMenu(statusViewTop);
 
         //实时预览
@@ -608,8 +589,7 @@ public final class CaptureActivity extends Activity {
      * "Hello world!"} with {@code world} in red.
      *
      */
-    private CharSequence setSpanBetweenTokens(CharSequence text, String token,
-                                              CharacterStyle... cs) {
+    private CharSequence setSpanBetweenTokens(CharSequence text, String token, CharacterStyle... cs) {
         // Start and end refer to the points where the span will apply
         int tokenLen = token.length();
         int start = text.toString().indexOf(token) + tokenLen;
@@ -625,39 +605,6 @@ public final class CaptureActivity extends Activity {
         return text;
     }
 
-    @Override
-    public void onCreateContextMenu(ContextMenu menu, View v,
-                                    ContextMenuInfo menuInfo) {
-        super.onCreateContextMenu(menu, v, menuInfo);
-        if (v.equals(ocrResultView)) {
-            menu.add(Menu.NONE, OPTIONS_COPY_RECOGNIZED_TEXT_ID, Menu.NONE, "Copy recognized text");
-            menu.add(Menu.NONE, OPTIONS_SHARE_RECOGNIZED_TEXT_ID, Menu.NONE, "Share recognized text");
-        }
-    }
-
-    @Override
-    public boolean onContextItemSelected(MenuItem item) {
-        ClipboardManager clipboardManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-        switch (item.getItemId()) {
-
-            case OPTIONS_COPY_RECOGNIZED_TEXT_ID:
-                clipboardManager.setText(ocrResultView.getText());
-                if (clipboardManager.hasText()) {
-                    Toast toast = Toast.makeText(this, "Text copied.", Toast.LENGTH_LONG);
-                    toast.setGravity(Gravity.BOTTOM, 0, 0);
-                    toast.show();
-                }
-                return true;
-            case OPTIONS_SHARE_RECOGNIZED_TEXT_ID:
-                Intent shareRecognizedTextIntent = new Intent(android.content.Intent.ACTION_SEND);
-                shareRecognizedTextIntent.setType("text/plain");
-                shareRecognizedTextIntent.putExtra(android.content.Intent.EXTRA_TEXT, ocrResultView.getText());
-                startActivity(Intent.createChooser(shareRecognizedTextIntent, "Share via"));
-                return true;
-            default:
-                return super.onContextItemSelected(item);
-        }
-    }
 
     /**
      * Resets view elements.

@@ -3,6 +3,7 @@ package com.lodz.android.conjurer.ocr
 import android.content.Context
 import com.googlecode.tesseract.android.TessBaseAPI
 import com.lodz.android.conjurer.bean.InitStatus
+import com.lodz.android.conjurer.bean.OcrRequestBean
 import com.lodz.android.conjurer.config.Constant
 import com.lodz.android.conjurer.util.OcrUtils
 import kotlinx.coroutines.*
@@ -118,7 +119,7 @@ class Conjurer private constructor(){
                 return@launch
             }
             runOnMain { mListener?.onInit(InitStatus.COMPLETE) }
-            CaptureActivity.start(context)
+            CaptureActivity.start(context, OcrRequestBean(mDataPath, mLanguage, mEngineMode, mPageSegMode, mBlackList, mWhiteList))
         }
     }
 

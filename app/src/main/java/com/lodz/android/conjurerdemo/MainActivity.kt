@@ -84,13 +84,6 @@ class MainActivity : BaseActivity() {
         showStatusCompleted()
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == CaptureActivity.REQUEST_CODE && resultCode == RESULT_OK) {
-            mBinding.resultTv.text = data?.getStringExtra(CaptureActivity.EXTRA_OCR_RESULT) ?: "无"
-        }
-    }
-
     /** 权限申请成功 */
     private fun onRequestPermission() {
         if (!isPermissionGranted(Manifest.permission.CAMERA)) {
