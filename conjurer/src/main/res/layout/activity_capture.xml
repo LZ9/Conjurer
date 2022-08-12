@@ -4,7 +4,7 @@
     android:layout_height="match_parent">
 
     <SurfaceView
-        android:id="@+id/preview_view"
+        android:id="@+id/surface_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
@@ -14,8 +14,9 @@
         android:layout_height="match_parent"
         android:background="#0000" />
 
+    <!--  识别结果展示  -->
     <LinearLayout
-        android:id="@+id/result_view"
+        android:id="@+id/result_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/result_view"
@@ -40,12 +41,12 @@
             android:layout_margin="15dp">
 
             <TextView
-                android:id="@+id/ocr_result_text_view"
+                android:id="@+id/result_tv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/result_text"
                 android:textColorLink="@color/result_text"
-                android:textSize="22sp" />
+                android:textSize="18sp" />
 
         </ScrollView>
 
@@ -58,18 +59,18 @@
 
         <!--    实时预览识别结果    -->
         <TextView
-            android:id="@+id/status_view_top"
+            android:id="@+id/preview_result_tv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="start|top"
-            android:background="#0000"
+            android:background="@color/cj_color_aaffffff"
             android:text=""
-            android:textColor="@color/status_text"
-            android:textSize="14sp" />
+            android:textColor="@color/cj_color_000000"
+            android:textSize="18sp" />
 
         <!--    实时预览状态信息    -->
         <TextView
-            android:id="@+id/status_view_bottom"
+            android:id="@+id/preview_status_tv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="start|bottom"

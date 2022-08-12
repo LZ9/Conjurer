@@ -6,13 +6,16 @@
     <color name="result_text">#ffffffff</color> <!-- OCR result text color -->
     <color name="result_view">#b0000000</color> <!-- result view background color -->
     <color name="status_text">#ffffffff</color> <!-- status_view_top/status_view_bottom text color -->
-    <color name="status_top_text_background">#ffffffff</color> <!-- status_view_top text background color -->
     <color name="translation_text">#00ccff</color> <!-- translation text color -->
     <color name="viewfinder_corners">#ffffffff</color> <!-- four corner elements for viewfinder -->
     <color name="viewfinder_frame">#ffd6d6d6</color> <!-- viewfinder rectangle -->
     <color name="viewfinder_mask">#60000000</color>  <!-- viewfinder exterior darkened area -->
 
 
+    <color name="cj_color_aaffffff">#aaffffff</color>
+    <color name="cj_color_000000">#000000</color>  <!-- viewfinder exterior darkened area -->
     <color name="cj_color_00ccff">#00CCFF</color>  <!-- viewfinder exterior darkened area -->
+
+
 
 </resources>

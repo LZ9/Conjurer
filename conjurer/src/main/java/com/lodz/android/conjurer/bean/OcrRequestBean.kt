@@ -1,5 +1,6 @@
 package com.lodz.android.conjurer.bean
 
+import com.lodz.android.conjurer.transformer.OcrResultTransformer
 import java.io.Serializable
 
 /**
@@ -14,4 +15,5 @@ class OcrRequestBean(
     val pageSegMode: Int,//页面分段模式
     val blackList: String,//黑名单
     val whiteList: String,//白名单
+    val transformerList: List<OcrResultTransformer>//识别结果转换器
 ) : Serializable

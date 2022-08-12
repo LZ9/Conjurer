@@ -5,6 +5,7 @@ import com.googlecode.tesseract.android.TessBaseAPI
 import com.lodz.android.conjurer.bean.InitStatus
 import com.lodz.android.conjurer.bean.OcrRequestBean
 import com.lodz.android.conjurer.config.Constant
+import com.lodz.android.conjurer.transformer.OcrResultTransformer
 import com.lodz.android.conjurer.util.OcrUtils
 import kotlinx.coroutines.*
 import java.io.File
@@ -40,6 +41,8 @@ class Conjurer private constructor(){
     private var mWhiteList = Constant.DEFAULT_WHITELIST
     /** 监听器 */
     private var mListener: OnConjurerListener? = null
+    /** 转换器列表 */
+    private var mTransformerList: ArrayList<OcrResultTransformer> = arrayListOf()
 
     /** OCR的API方法 */
     private var mTessApi: TessBaseAPI? = null
@@ -100,6 +103,12 @@ class Conjurer private constructor(){
         return this
     }
 
+    /** 添加OCR识别结果转换器 */
+    fun addOcrResultTransformer(vararg transformer: OcrResultTransformer): Conjurer {
+        mTransformerList.addAll(transformer)
+        return this
+    }
+
     /** 删除目录中已经存在的训练数据，上下文[context] */
     fun deleteTessdataDir(context: Context) : Conjurer {
         checkPath(context)
@@ -114,12 +123,15 @@ class Conjurer private constructor(){
     /** 启动相机 */
     fun openCamera(context: Context) {
         MainScope().launch {
-            val isCheckSuccess = checkLocalTrainedData(context)
-            if (!isCheckSuccess) {
+            var isCheckSuccess: Boolean
+            withContext(Dispatchers.IO) {
+                isCheckSuccess = checkLocalTrainedData(context)
+            }
+            if (!isCheckSuccess){
                 return@launch
             }
-            runOnMain { mListener?.onInit(InitStatus.COMPLETE) }
-            CaptureActivity.start(context, OcrRequestBean(mDataPath, mLanguage, mEngineMode, mPageSegMode, mBlackList, mWhiteList))
+            mListener?.onInit(InitStatus.COMPLETE)
+            CaptureActivity.start(context, OcrRequestBean(mDataPath, mLanguage, mEngineMode, mPageSegMode, mBlackList, mWhiteList, mTransformerList))
         }
     }
 

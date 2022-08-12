@@ -8,7 +8,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.SpannableStringBuilder;
@@ -16,12 +15,11 @@ import android.text.TextUtils;
 import android.text.style.CharacterStyle;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.CompoundButton;
@@ -40,10 +38,9 @@ import com.lodz.android.conjurer.bean.OcrResultBean;
 import com.lodz.android.conjurer.camera.CameraManager;
 import com.lodz.android.conjurer.camera.ShutterButton;
 import com.lodz.android.conjurer.config.Constant;
+import com.lodz.android.conjurer.transformer.OcrResultTransformer;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 
 /**
@@ -69,21 +66,11 @@ public final class CaptureActivity extends Activity {
 
     private CameraManager cameraManager;
     private CaptureActivityHandler handler;
-    private ViewfinderView viewfinderView;
-    private SurfaceView surfaceView;
-    private SurfaceHolder surfaceHolder;
-    private TextView statusViewBottom;
-    private TextView statusViewTop;
-    private TextView ocrResultView;
-    private View resultView;
-    private OcrResultBean lastResult;
     private boolean hasSurface;
-    private TessBaseAPI mBaseApi; // Java interface for the Tesseract OCR engine
-    private ShutterButton shutterButton;
     private boolean isContinuousModeActive = false; // Whether we are doing OCR in continuous mode
-    private ProgressDialog dialog; // for initOcr - language download & unzip
-    private ProgressDialog indeterminateDialog; // also for initOcr - init OCR engine
     private boolean isPaused;
+    private ProgressDialog indeterminateDialog; // also for initOcr - init OCR engine
+
 
     public Handler getHandler() {
         return handler;
@@ -97,14 +84,44 @@ public final class CaptureActivity extends Activity {
         return cameraManager;
     }
 
-    private OcrRequestBean mBean;
+    /** OCR请求数据体 */
+    private OcrRequestBean mRequestBean;
+    /** 识别结果数据体 */
+    private OcrResultBean mResultBean;
+
+    /** 相机预览 */
+    private SurfaceView mSurfaceView;
+    private SurfaceHolder mSurfaceHolder;
+    /** 扫描框 */
+    private ViewfinderView mViewfinderView;
+    /** 结果展示布局 */
+    private ViewGroup mResultLayout;
+    /** 识别结果图 */
+    private ImageView mResultImg;
+    /** 识别文字 */
+    private TextView mResultTv;
+
+    /** 实时预览布局 */
+    private ViewGroup mPreviewLayout;
+    /** 实时预览识别文字 */
+    private TextView mPreviewResultTv;
+    /** 实时预览状态 */
+    private TextView mPreviewStatusTv;
+
+    /** 拍照按钮 */
+    private ShutterButton mShutterButton;
+    /** 实时预览开关 */
+    private AppCompatToggleButton mToggleBtn;
+
+    /** OCR封装类 */
+    private TessBaseAPI mBaseApi;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mBean = (OcrRequestBean) getIntent().getSerializableExtra(EXTRA_OCR_REQUEST);
-        if (mBean == null){
+        mRequestBean = (OcrRequestBean) getIntent().getSerializableExtra(EXTRA_OCR_REQUEST);
+        if (mRequestBean == null){
             finish();
             return;
         }
@@ -113,43 +130,28 @@ public final class CaptureActivity extends Activity {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 
-
         setContentView(R.layout.activity_capture);
-        viewfinderView = findViewById(R.id.viewfinder_view);
-        resultView = findViewById(R.id.result_view);
+        mSurfaceView = findViewById(R.id.surface_view);
+        mSurfaceHolder = mSurfaceView.getHolder();
 
-        statusViewBottom = findViewById(R.id.status_view_bottom);
-        registerForContextMenu(statusViewBottom);
-        statusViewTop = findViewById(R.id.status_view_top);
-        registerForContextMenu(statusViewTop);
+        mViewfinderView = findViewById(R.id.viewfinder_view);
+        mResultLayout = findViewById(R.id.result_layout);
+        mResultImg = findViewById(R.id.image_view);
+        mResultTv = findViewById(R.id.result_tv);
 
-        //实时预览
-        AppCompatToggleButton toggleBtn = findViewById(R.id.preview_togbtn);
-        toggleBtn.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                isContinuousModeActive = isChecked;
-                statusViewBottom.setVisibility(isContinuousModeActive ? View.VISIBLE : View.GONE);
-                statusViewTop.setVisibility(isContinuousModeActive ? View.VISIBLE : View.GONE);
-                resumeOCR();
-            }
-        });
+        mPreviewLayout = findViewById(R.id.preview_layout);
+        mPreviewResultTv = findViewById(R.id.preview_result_tv);
+        mPreviewStatusTv = findViewById(R.id.preview_status_tv);
 
-        handler = null;
-        lastResult = null;
-        hasSurface = false;
-
-        shutterButton = findViewById(R.id.shutter_button);
-        shutterButton.setOnShutterButtonListener(new ShutterButton.OnShutterButtonListener() {
+        mShutterButton = findViewById(R.id.shutter_button);
+        mShutterButton.setOnShutterButtonListener(new ShutterButton.OnShutterButtonListener() {
             @Override
             public void onActionDownFocus(@NonNull ShutterButton btn, boolean pressed) {
-                Log.v("testtag", "onShutterButtonFocus");
                 requestDelayedAutoFocus();
             }
 
             @Override
             public void onActionUpClick(@NonNull ShutterButton btn) {
-                Log.v("testtag", "onShutterButtonClick");
                 if (isContinuousModeActive) {
                     onShutterButtonPressContinuous();
                 } else {
@@ -160,23 +162,29 @@ public final class CaptureActivity extends Activity {
             }
         });
 
-        ocrResultView = (TextView) findViewById(R.id.ocr_result_text_view);
-        registerForContextMenu(ocrResultView);
+        //实时预览
+        mToggleBtn = findViewById(R.id.preview_togbtn);
+        mToggleBtn.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                isContinuousModeActive = isChecked;
+                mPreviewLayout.setVisibility(isContinuousModeActive ? View.VISIBLE : View.GONE);
+                resumeOCR();
+            }
+        });
 
+        mBaseApi = new TessBaseAPI();
         cameraManager = new CameraManager(getApplication());
-        viewfinderView.setCameraManager(cameraManager);
-
+        mViewfinderView.setCameraManager(cameraManager);
+        handler = null;
+        mResultBean = null;
+        hasSurface = false;
     }
 
-    private SurfaceHolder.Callback mCallback = new SurfaceHolder.Callback() {
+
+    private final SurfaceHolder.Callback mCallback = new SurfaceHolder.Callback() {
         @Override
         public void surfaceCreated(@NonNull SurfaceHolder holder) {
-            Log.d(TAG, "surfaceCreated()");
-
-            if (holder == null) {
-                Log.e(TAG, "surfaceCreated gave us a null surface");
-            }
-
             // Only initialize the camera if the OCR engine is ready to go.
             if (!hasSurface) {
                 Log.d(TAG, "surfaceCreated(): calling initCamera()...");
@@ -199,31 +207,15 @@ public final class CaptureActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        resetStatusView();
-
-        String previousSourceLanguageCodeOcr = mBean.getLanguage();
-        int previousOcrEngineMode = mBean.getEngineMode();
-
+        showStandardUI();
         // Set up the camera preview surface.
-        surfaceView = findViewById(R.id.preview_view);
-        surfaceHolder = surfaceView.getHolder();
+
         if (!hasSurface) {
-            surfaceHolder.addCallback(mCallback);
-            surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+            mSurfaceHolder.addCallback(mCallback);
+            mSurfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
         }
 
-        // Comment out the following block to test non-OCR functions without an SD card
-
-        // Do OCR engine initialization, if necessary
-        boolean doNewInit = (mBaseApi == null) || !mBean.getLanguage().equals(previousSourceLanguageCodeOcr) ||
-                mBean.getEngineMode() != previousOcrEngineMode;
-        if (doNewInit) {
-            // Initialize the OCR engine
-            initOcrEngine(mBean.getLanguage());
-        } else {
-            // We already have the engine initialized, so just start the camera.
-            resumeOCR();
-        }
+        resumeOCR();
     }
 
     /**
@@ -243,16 +235,16 @@ public final class CaptureActivity extends Activity {
             handler.resetState();
         }
         if (mBaseApi != null) {
-            mBaseApi.init(mBean.getDataPath(), mBean.getLanguage(), mBean.getEngineMode());
-            mBaseApi.setPageSegMode(mBean.getPageSegMode());
-            mBaseApi.setVariable(TessBaseAPI.VAR_CHAR_BLACKLIST, mBean.getBlackList());//黑名单
-            mBaseApi.setVariable(TessBaseAPI.VAR_CHAR_WHITELIST, mBean.getWhiteList());//白名单
+            mBaseApi.init(mRequestBean.getDataPath(), mRequestBean.getLanguage(), mRequestBean.getEngineMode());
+            mBaseApi.setPageSegMode(mRequestBean.getPageSegMode());
+            mBaseApi.setVariable(TessBaseAPI.VAR_CHAR_BLACKLIST, mRequestBean.getBlackList());//黑名单
+            mBaseApi.setVariable(TessBaseAPI.VAR_CHAR_WHITELIST, mRequestBean.getWhiteList());//白名单
         }
 
         if (hasSurface) {
             // The activity was paused but not stopped, so the surface still exists. Therefore
             // surfaceCreated() won't be called, so init the camera here.
-            initCamera(surfaceHolder);
+            initCamera(mSurfaceHolder);
         }
     }
 
@@ -260,8 +252,8 @@ public final class CaptureActivity extends Activity {
     void onShutterButtonPressContinuous() {
         isPaused = true;
         handler.stop();
-        if (lastResult != null) {
-            handleOcrDecode(lastResult);
+        if (mResultBean != null) {
+            handleOcrDecode(mResultBean);
         } else {
             Toast toast = Toast.makeText(this, "OCR failed. Please try again.", Toast.LENGTH_SHORT);
             toast.setGravity(Gravity.TOP, 0, 0);
@@ -274,11 +266,11 @@ public final class CaptureActivity extends Activity {
     @SuppressWarnings("unused")
     void resumeContinuousDecoding() {
         isPaused = false;
-        resetStatusView();
+        showStandardUI();
         setStatusViewForContinuous();
         DecodeHandler.resetDecodeState();
         handler.resetState();
-        shutterButton.setVisibility(View.VISIBLE);
+        mShutterButton.setVisibility(View.VISIBLE);
     }
 
 
@@ -315,9 +307,7 @@ public final class CaptureActivity extends Activity {
         cameraManager.closeDriver();
 
         if (!hasSurface) {
-            SurfaceView surfaceView = (SurfaceView) findViewById(R.id.preview_view);
-            SurfaceHolder surfaceHolder = surfaceView.getHolder();
-            surfaceHolder.removeCallback(mCallback);
+            mSurfaceHolder.removeCallback(mCallback);
         }
         super.onPause();
     }
@@ -337,76 +327,30 @@ public final class CaptureActivity extends Activity {
     }
 
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-
-            // First check if we're paused in continuous mode, and if so, just unpause.
-            if (isPaused) {
-                Log.d(TAG, "only resuming continuous recognition, not quitting...");
-                resumeContinuousDecoding();
-                return true;
-            }
-
-            // Exit the app if we're not viewing an OCR result.
-            if (lastResult == null) {
-                setResult(RESULT_CANCELED);
-                finish();
-                return true;
-            } else {
-                // Go back to previewing in regular OCR mode.
-                resetStatusView();
-                if (handler != null) {
-                    handler.sendEmptyMessage(Constant.CJ_RESTART_PREVIEW);
-                }
-                return true;
-            }
-        } else if (keyCode == KeyEvent.KEYCODE_CAMERA) {
-            if (isContinuousModeActive) {
-                onShutterButtonPressContinuous();
-            } else {
-                handler.hardwareShutterButtonClick();
-            }
-            return true;
-        } else if (keyCode == KeyEvent.KEYCODE_FOCUS) {
-            // Only perform autofocus if user is not holding down the button.
-            if (event.getRepeatCount() == 0) {
-                cameraManager.requestAutoFocus(CAMERA_FOCUS_DELAY);
-            }
-            return true;
+    public void onBackPressed() {
+        // First check if we're paused in continuous mode, and if so, just unpause.
+        if (isPaused) {
+            Log.d(TAG, "only resuming continuous recognition, not quitting...");
+            resumeContinuousDecoding();
+            return;
         }
-        return super.onKeyDown(keyCode, event);
-    }
-
-
-    /**
-     * Requests initialization of the OCR engine with the given parameters.
-     *
-     * @param languageCode Three-letter ISO 639-3 language code for OCR
-     */
-    private void initOcrEngine(String languageCode) {
-
-        // Set up the dialog box for the thermometer-style download progress indicator
-        if (dialog != null) {
-            dialog.dismiss();
+        if (mResultLayout.getVisibility() == View.VISIBLE){
+            showStandardUI();
+            return;
         }
-        dialog = new ProgressDialog(this);
 
-
+        // Exit the app if we're not viewing an OCR result.
+        if (mResultBean == null) {
+            finish();
+            return;
+        }
+        showStandardUI();
         if (handler != null) {
-            handler.quitSynchronously();
+            handler.sendEmptyMessage(Constant.CJ_RESTART_PREVIEW);
         }
-
-        // Disable continuous mode if we're using Cube. This will prevent bad states for devices
-        // with low memory that crash when running OCR with Cube, and prevent unwanted delays.
-        if (mBean.getEngineMode() == TessBaseAPI.OEM_CUBE_ONLY || mBean.getEngineMode() == TessBaseAPI.OEM_TESSERACT_CUBE_COMBINED) {
-            Log.d(TAG, "Disabling continuous preview");
-            isContinuousModeActive = false;
-        }
-
-        // Start AsyncTask to install language data and init OCR
-        mBaseApi = new TessBaseAPI();
-        resumeOCR();
+        super.onBackPressed();
     }
+
 
     /**
      * Displays information relating to the result of OCR, and requests a translation if necessary.
@@ -414,99 +358,27 @@ public final class CaptureActivity extends Activity {
      * @param bean Object representing successful OCR results
      * @return True if a non-null result was received for OCR
      */
-    boolean handleOcrDecode(OcrResultBean bean) {
-        lastResult = bean;
-
+    void handleOcrDecode(OcrResultBean bean) {
         // Test whether the result is null
-        if (bean.text == null || bean.text.equals("")) {
+        if (TextUtils.isEmpty(bean.text)) {
             Toast toast = Toast.makeText(this, "OCR failed. Please try again.", Toast.LENGTH_SHORT);
             toast.setGravity(Gravity.TOP, 0, 0);
             toast.show();
-            return false;
         }
-
-        // Turn off capture-related UI elements
-        shutterButton.setVisibility(View.GONE);
-        statusViewBottom.setVisibility(View.GONE);
-        statusViewTop.setVisibility(View.GONE);
-        viewfinderView.setVisibility(View.GONE);
-        resultView.setVisibility(View.VISIBLE);
-
-        ImageView bitmapImageView = (ImageView) findViewById(R.id.image_view);
-        Bitmap lastBitmap = bean.getAnnotatedBitmap(this, R.color.cj_color_00ccff);
-        if (lastBitmap == null) {
-            bitmapImageView.setVisibility(View.GONE);
+        mResultBean = bean;
+        showResultUI(bean);
+        Bitmap bitmap = bean.getAnnotatedBitmap(this, R.color.cj_color_00ccff);
+        if (bitmap == null) {
+            mResultImg.setVisibility(View.GONE);
         } else {
-            bitmapImageView.setVisibility(View.VISIBLE);
-            bitmapImageView.setImageBitmap(lastBitmap);
+            mResultImg.setVisibility(View.VISIBLE);
+            mResultImg.setImageBitmap(bitmap);
         }
-
-        TextView ocrResultTextView = (TextView) findViewById(R.id.ocr_result_text_view);
-        ocrResultTextView.setText(bean.text);
-        // Crudely scale betweeen 22 and 32 -- bigger font for shorter text
-        int scaledSize = Math.max(22, 32 - bean.text.length() / 4);
-        ocrResultTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, scaledSize);
-
-        setProgressBarVisibility(false);
-//        Intent intent = new Intent();
-//        intent.putExtra(EXTRA_OCR_RESULT, bean.getText());
-//        setResult(RESULT_OK, intent);
-        return true;
-    }
-
-//    private String getSfzh(String text) {
-//        Log.d("testtag", text);
-//        String word = text.trim().replace(" ", "");
-//        List<String> list = getListBySeparator(word, "\n");
-//        Log.i("testtag", list.size() + "");
-//        List<String> sfzList = new ArrayList<String>();
-//        for (String str : list) {
-//            if (str.length() < 18) {
-//                continue;
-//            }
-//            if (str.length() == 18 && IdCardUtils.validateIdCard(str)) {
-//                sfzList.add(str);
-//                continue;
-//            }
-//            boolean isMatchFail = true;
-//            int offset = str.length() - 17;
-//            for (int i = 0; i < offset; i++) {
-//                String section = str.substring(i, 18 + i);
-//                if (IdCardUtils.validateIdCard(section)) {
-//                    sfzList.add(section);
-//                    isMatchFail = false;
-//                    break;
-//                }
-//            }
-//            if (isMatchFail) {
-//                sfzList.add("error:" + str);
-//            }
-//        }
-//        for (String s : sfzList) {
-//            Log.e("testtag", s);
-//            ToastUtils.showShort(this, s);
-//        }
-//        return text;
-//    }
-
-    /**
-     * 根据分隔符将字符串转为列表
-     * @param source 字符串
-     * @param separator 分隔符
-     */
-    private List<String> getListBySeparator(String source, String separator) {
-        List<String> list = new ArrayList<String>();
-        while (source.contains(separator)) {
-            String value = source.substring(0, source.indexOf(separator));
-            if (!TextUtils.isEmpty(value)) {
-                list.add(value);
-            }
-            source = source.substring(source.indexOf(separator) + 1, source.length());
+        String text = bean.text;
+        for (OcrResultTransformer transformer : mRequestBean.getTransformerList()) {
+            text = transformer.onResultTransformer(text);
         }
-        if (!TextUtils.isEmpty(source)) {
-            list.add(source);
-        }
-        return list;
+        mResultTv.setText(text);
     }
 
     /**
@@ -516,27 +388,20 @@ public final class CaptureActivity extends Activity {
      */
     void handleOcrContinuousDecode(OcrResultBean bean) {
 
-        lastResult = bean;
+        mResultBean = bean;
 
         // Send an OcrResultText object to the ViewfinderView for text rendering
-        viewfinderView.addResultText(bean);
+        mViewfinderView.setResultText(bean);
 
-        Integer meanConfidence = bean.meanConfidence;
 
         // 显示实时扫描文本结果
-        statusViewTop.setText(bean.text);
-        int scaledSize = Math.max(22, 32 - bean.text.length() / 4);
-        statusViewTop.setTextSize(TypedValue.COMPLEX_UNIT_SP, scaledSize);
-        statusViewTop.setTextColor(Color.BLACK);
-        statusViewTop.setBackgroundResource(R.color.status_top_text_background);
-
-        statusViewTop.getBackground().setAlpha(meanConfidence * (255 / 100));
+        mPreviewResultTv.setText(bean.text);
 
         // 显示实时扫描统计信息
-        long recognitionTimeRequired = bean.recognitionTimeRequired;
-        statusViewBottom.setTextSize(14);
-        statusViewBottom.setText("OCR: " + mBean.getLanguage() + " - Mean confidence: " +
-                meanConfidence.toString() + " - Time required: " + recognitionTimeRequired + " ms");
+        mPreviewStatusTv.setText(
+                "OCR: " + mRequestBean.getLanguage() +
+                " - Mean confidence: " + bean.meanConfidence +
+                " - Time required: " + bean.recognitionTimeRequired + " ms");
     }
 
     /**
@@ -545,17 +410,15 @@ public final class CaptureActivity extends Activity {
      * @param obj Metadata for the failed OCR request.
      */
     void handleOcrContinuousDecodeFail(OcrResultBean obj) {
-        lastResult = null;
-        viewfinderView.removeResultText();
+        mResultBean = null;
+        mViewfinderView.removeResultText();
 
         // Reset the text in the recognized text box.
-        statusViewTop.setText("");
+        mPreviewResultTv.setText("");
 
         // 将'-'号内的文本设置为红色
-        statusViewBottom.setTextSize(14);
-        CharSequence cs = setSpanBetweenTokens("OCR: " + mBean.getLanguage() + " - OCR failed - Time required: "
-                + obj.recognitionTimeRequired + " ms", "-", new ForegroundColorSpan(0xFFFF0000));
-        statusViewBottom.setText(cs);
+        CharSequence cs = setSpanBetweenTokens("OCR: " + mRequestBean.getLanguage() + " - OCR failed - Time required: " + obj.recognitionTimeRequired + " ms", "-", new ForegroundColorSpan(0xFFFF0000));
+        mPreviewStatusTv.setText(cs);
     }
 
     /**
@@ -587,30 +450,31 @@ public final class CaptureActivity extends Activity {
         return text;
     }
 
+    /** 显示标准模式UI */
+    private void showStandardUI() {
+        mResultLayout.setVisibility(View.GONE);
+        mResultTv.setText("");
+        mPreviewLayout.setVisibility(View.GONE);
+        mPreviewStatusTv.setText("");
+        mPreviewResultTv.setText("");
 
-    /**
-     * Resets view elements.
-     */
-    private void resetStatusView() {
-        resultView.setVisibility(View.GONE);
-        statusViewBottom.setText("");
-        statusViewBottom.setTextSize(14);
-        statusViewBottom.setTextColor(getResources().getColor(R.color.status_text));
-//            statusViewBottom.setVisibility(View.VISIBLE);
+        mViewfinderView.setVisibility(View.VISIBLE);
+        mShutterButton.setVisibility(View.VISIBLE);
+        mResultBean = null;
+        mViewfinderView.removeResultText();
+    }
 
-        statusViewTop.setText("");
-        statusViewTop.setTextSize(14);
-//            statusViewTop.setVisibility(View.VISIBLE);
-
-        viewfinderView.setVisibility(View.VISIBLE);
-        shutterButton.setVisibility(View.VISIBLE);
-        lastResult = null;
-        viewfinderView.removeResultText();
+    /** 显示结果UI */
+    private void showResultUI(OcrResultBean bean){
+        mResultLayout.setVisibility(View.VISIBLE);
+        mShutterButton.setVisibility(View.GONE);
+        mPreviewLayout.setVisibility(View.GONE);
+        mViewfinderView.setVisibility(View.GONE);
     }
 
     /** Displays a pop-up message showing the name of the current OCR source language. */
     public void showLanguageName() {
-        Toast toast = Toast.makeText(this, "OCR: " + mBean.getLanguage(), Toast.LENGTH_LONG);
+        Toast toast = Toast.makeText(this, "OCR: " + mRequestBean.getLanguage(), Toast.LENGTH_LONG);
         toast.setGravity(Gravity.TOP, 0, 0);
         toast.show();
     }
@@ -620,13 +484,13 @@ public final class CaptureActivity extends Activity {
      * completed after starting realtime OCR.
      */
     void setStatusViewForContinuous() {
-        viewfinderView.removeResultText();
-        statusViewBottom.setText("OCR: " + mBean.getLanguage() + " - waiting for OCR...");
+        mViewfinderView.removeResultText();
+        mPreviewStatusTv.setText("OCR: " + mRequestBean.getLanguage() + " - waiting for OCR...");
     }
 
     @SuppressWarnings("unused")
     public void setButtonVisibility(boolean visible) {
-        shutterButton.setVisibility(visible ? View.VISIBLE : View.GONE);
+        mShutterButton.setVisibility(visible ? View.VISIBLE : View.GONE);
     }
 
     /**
@@ -635,12 +499,12 @@ public final class CaptureActivity extends Activity {
      * @param clickable True if the button should accept a click
      */
     void setShutterButtonClickable(boolean clickable) {
-        shutterButton.setClickable(clickable);
+        mShutterButton.setClickable(clickable);
     }
 
     /** Request the viewfinder to be invalidated. */
     void drawViewfinder() {
-        viewfinderView.drawViewfinder();
+        mViewfinderView.drawViewfinder();
     }
 
 

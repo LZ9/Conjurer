@@ -55,6 +55,7 @@ class MainActivity : BaseActivity() {
                 .setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO_OSD)
                 .setBlackList("")
                 .setWhiteList("Xx0123456789")
+                .addOcrResultTransformer(SfzhTransformer())
                 .setOnConjurerListener(object : OnConjurerListener {
                     override fun onInit(status: InitStatus) {
                         addLog("${Thread.currentThread().name} onInit : ${status.msg}")

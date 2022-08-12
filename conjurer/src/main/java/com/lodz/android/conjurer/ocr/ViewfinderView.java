@@ -371,7 +371,7 @@ public final class ViewfinderView extends View {
      *
      * @param bean Object containing OCR-derived text and corresponding data.
      */
-    public void addResultText(OcrResultBean bean) {
+    public void setResultText(OcrResultBean bean) {
         resultBean = bean;
     }
 

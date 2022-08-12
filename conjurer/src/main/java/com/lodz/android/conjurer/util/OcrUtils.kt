@@ -86,5 +86,42 @@ object OcrUtils {
         }
     }
 
+    /** 根据分隔符[separator]将字符串[str]转为列表 */
+    fun getListBySeparator(str: String, separator: String): List<String> {
+        var source = str
+        val list = ArrayList<String>()
+        while (source.contains(separator)) {
+            val value = source.substring(0, source.indexOf(separator))
+            if (value.isNotEmpty()) {
+                list.add(value)
+            }
+            source = source.substring(source.indexOf(separator) + 1, source.length)
+        }
+        if (source.isNotEmpty()) {
+            list.add(source)
+        }
+        return list
+    }
+
+    /** 根据分隔符[separator]组装数组[array] */
+    fun getStringBySeparator(array: Array<String>, separator: String): String =
+        getStringBySeparator(array.toList(), separator)
+
+    /** 根据分隔符[separator]组装列表[list] */
+    fun getStringBySeparator(list: List<String>, separator: String): String {
+        var result = ""
+        if (list.isEmpty()) {
+            return result
+        }
+        for (i in list.indices) {
+            result = result + list[i] + if (i == (list.size - 1)) "" else separator
+        }
+        return result
+    }
+
+    /** 根据分隔符[separator]将字符串[str]转为数组 */
+    fun getArrayBySeparator(str: String, separator: String): Array<String> =
+        getListBySeparator(str, separator).toTypedArray()
+
 
 }
