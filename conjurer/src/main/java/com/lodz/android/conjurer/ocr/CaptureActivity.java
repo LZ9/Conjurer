@@ -7,13 +7,10 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
-import android.preference.PreferenceManager;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.style.CharacterStyle;
@@ -43,9 +40,7 @@ import com.lodz.android.conjurer.bean.OcrResultBean;
 import com.lodz.android.conjurer.camera.CameraManager;
 import com.lodz.android.conjurer.camera.ShutterButton;
 import com.lodz.android.conjurer.config.Constant;
-import com.lodz.android.conjurer.ocr.task.OcrInitAsyncTask;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -84,15 +79,10 @@ public final class CaptureActivity extends Activity {
     private OcrResultBean lastResult;
     private boolean hasSurface;
     private TessBaseAPI mBaseApi; // Java interface for the Tesseract OCR engine
-    private String sourceLanguageCodeOcr = "eng"; // ISO 639-3 language code
-    private String sourceLanguageReadable = "English"; // Language name, for example, "English"
-    private int ocrEngineMode = TessBaseAPI.OEM_TESSERACT_ONLY;
     private ShutterButton shutterButton;
     private boolean isContinuousModeActive = false; // Whether we are doing OCR in continuous mode
-    private OnSharedPreferenceChangeListener listener;
     private ProgressDialog dialog; // for initOcr - language download & unzip
     private ProgressDialog indeterminateDialog; // also for initOcr - init OCR engine
-    private boolean isEngineReady;
     private boolean isPaused;
 
     public Handler getHandler() {
@@ -107,12 +97,23 @@ public final class CaptureActivity extends Activity {
         return cameraManager;
     }
 
+    private OcrRequestBean mBean;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mBean = (OcrRequestBean) getIntent().getSerializableExtra(EXTRA_OCR_REQUEST);
+        if (mBean == null){
+            finish();
+            return;
+        }
+
         Window window = getWindow();
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+
+
         setContentView(R.layout.activity_capture);
         viewfinderView = findViewById(R.id.viewfinder_view);
         resultView = findViewById(R.id.result_view);
@@ -165,7 +166,6 @@ public final class CaptureActivity extends Activity {
         cameraManager = new CameraManager(getApplication());
         viewfinderView.setCameraManager(cameraManager);
 
-        isEngineReady = false;
     }
 
     private SurfaceHolder.Callback mCallback = new SurfaceHolder.Callback() {
@@ -178,7 +178,7 @@ public final class CaptureActivity extends Activity {
             }
 
             // Only initialize the camera if the OCR engine is ready to go.
-            if (!hasSurface && isEngineReady) {
+            if (!hasSurface) {
                 Log.d(TAG, "surfaceCreated(): calling initCamera()...");
                 initCamera(holder);
             }
@@ -201,12 +201,8 @@ public final class CaptureActivity extends Activity {
         super.onResume();
         resetStatusView();
 
-        String previousSourceLanguageCodeOcr = sourceLanguageCodeOcr;
-        int previousOcrEngineMode = ocrEngineMode;
-
-        // Retrieve from preferences, and set in this Activity, the page segmentation mode preference
-        // Retrieve from preferences, and set in this Activity, the OCR engine mode
-        ocrEngineMode = TessBaseAPI.OEM_TESSERACT_ONLY;
+        String previousSourceLanguageCodeOcr = mBean.getLanguage();
+        int previousOcrEngineMode = mBean.getEngineMode();
 
         // Set up the camera preview surface.
         surfaceView = findViewById(R.id.preview_view);
@@ -219,14 +215,11 @@ public final class CaptureActivity extends Activity {
         // Comment out the following block to test non-OCR functions without an SD card
 
         // Do OCR engine initialization, if necessary
-        boolean doNewInit = (mBaseApi == null) || !sourceLanguageCodeOcr.equals(previousSourceLanguageCodeOcr) ||
-                ocrEngineMode != previousOcrEngineMode;
+        boolean doNewInit = (mBaseApi == null) || !mBean.getLanguage().equals(previousSourceLanguageCodeOcr) ||
+                mBean.getEngineMode() != previousOcrEngineMode;
         if (doNewInit) {
             // Initialize the OCR engine
-            File storageDirectory = this.getExternalFilesDir("");
-            if (storageDirectory != null) {
-                initOcrEngine(storageDirectory, sourceLanguageCodeOcr, sourceLanguageReadable);
-            }
+            initOcrEngine(mBean.getLanguage());
         } else {
             // We already have the engine initialized, so just start the camera.
             resumeOCR();
@@ -243,7 +236,6 @@ public final class CaptureActivity extends Activity {
 
         // This method is called when Tesseract has already been successfully initialized, so set
         // isEngineReady = true here.
-        isEngineReady = true;
 
         isPaused = false;
 
@@ -251,9 +243,10 @@ public final class CaptureActivity extends Activity {
             handler.resetState();
         }
         if (mBaseApi != null) {
-            mBaseApi.setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO_OSD);
-            mBaseApi.setVariable(TessBaseAPI.VAR_CHAR_BLACKLIST, "");//黑名单
-            mBaseApi.setVariable(TessBaseAPI.VAR_CHAR_WHITELIST, "Xx0123456789");//白名单
+            mBaseApi.init(mBean.getDataPath(), mBean.getLanguage(), mBean.getEngineMode());
+            mBaseApi.setPageSegMode(mBean.getPageSegMode());
+            mBaseApi.setVariable(TessBaseAPI.VAR_CHAR_BLACKLIST, mBean.getBlackList());//黑名单
+            mBaseApi.setVariable(TessBaseAPI.VAR_CHAR_WHITELIST, mBean.getWhiteList());//白名单
         }
 
         if (hasSurface) {
@@ -388,12 +381,9 @@ public final class CaptureActivity extends Activity {
     /**
      * Requests initialization of the OCR engine with the given parameters.
      *
-     * @param storageRoot Path to location of the tessdata directory to use
      * @param languageCode Three-letter ISO 639-3 language code for OCR
-     * @param languageName Name of the language for OCR, for example, "English"
      */
-    private void initOcrEngine(File storageRoot, String languageCode, String languageName) {
-        isEngineReady = false;
+    private void initOcrEngine(String languageCode) {
 
         // Set up the dialog box for the thermometer-style download progress indicator
         if (dialog != null) {
@@ -401,12 +391,6 @@ public final class CaptureActivity extends Activity {
         }
         dialog = new ProgressDialog(this);
 
-        // Display the name of the OCR engine we're initializing in the indeterminate progress dialog box
-        indeterminateDialog = new ProgressDialog(this);
-        indeterminateDialog.setTitle("Please wait");
-        indeterminateDialog.setMessage("Initializing Tesseract OCR engine for " + languageName + "...");
-        indeterminateDialog.setCancelable(false);
-        indeterminateDialog.show();
 
         if (handler != null) {
             handler.quitSynchronously();
@@ -414,16 +398,14 @@ public final class CaptureActivity extends Activity {
 
         // Disable continuous mode if we're using Cube. This will prevent bad states for devices
         // with low memory that crash when running OCR with Cube, and prevent unwanted delays.
-        if (ocrEngineMode == TessBaseAPI.OEM_CUBE_ONLY || ocrEngineMode == TessBaseAPI.OEM_TESSERACT_CUBE_COMBINED) {
+        if (mBean.getEngineMode() == TessBaseAPI.OEM_CUBE_ONLY || mBean.getEngineMode() == TessBaseAPI.OEM_TESSERACT_CUBE_COMBINED) {
             Log.d(TAG, "Disabling continuous preview");
             isContinuousModeActive = false;
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         }
 
         // Start AsyncTask to install language data and init OCR
         mBaseApi = new TessBaseAPI();
-        new OcrInitAsyncTask(this, mBaseApi, dialog, indeterminateDialog, languageCode, languageName, ocrEngineMode)
-                .execute(storageRoot.toString());
+        resumeOCR();
     }
 
     /**
@@ -553,7 +535,7 @@ public final class CaptureActivity extends Activity {
         // 显示实时扫描统计信息
         long recognitionTimeRequired = bean.recognitionTimeRequired;
         statusViewBottom.setTextSize(14);
-        statusViewBottom.setText("OCR: " + sourceLanguageReadable + " - Mean confidence: " +
+        statusViewBottom.setText("OCR: " + mBean.getLanguage() + " - Mean confidence: " +
                 meanConfidence.toString() + " - Time required: " + recognitionTimeRequired + " ms");
     }
 
@@ -571,7 +553,7 @@ public final class CaptureActivity extends Activity {
 
         // 将'-'号内的文本设置为红色
         statusViewBottom.setTextSize(14);
-        CharSequence cs = setSpanBetweenTokens("OCR: " + sourceLanguageReadable + " - OCR failed - Time required: "
+        CharSequence cs = setSpanBetweenTokens("OCR: " + mBean.getLanguage() + " - OCR failed - Time required: "
                 + obj.recognitionTimeRequired + " ms", "-", new ForegroundColorSpan(0xFFFF0000));
         statusViewBottom.setText(cs);
     }
@@ -628,7 +610,7 @@ public final class CaptureActivity extends Activity {
 
     /** Displays a pop-up message showing the name of the current OCR source language. */
     public void showLanguageName() {
-        Toast toast = Toast.makeText(this, "OCR: " + sourceLanguageReadable, Toast.LENGTH_LONG);
+        Toast toast = Toast.makeText(this, "OCR: " + mBean.getLanguage(), Toast.LENGTH_LONG);
         toast.setGravity(Gravity.TOP, 0, 0);
         toast.show();
     }
@@ -639,7 +621,7 @@ public final class CaptureActivity extends Activity {
      */
     void setStatusViewForContinuous() {
         viewfinderView.removeResultText();
-        statusViewBottom.setText("OCR: " + sourceLanguageReadable + " - waiting for OCR...");
+        statusViewBottom.setText("OCR: " + mBean.getLanguage() + " - waiting for OCR...");
     }
 
     @SuppressWarnings("unused")
