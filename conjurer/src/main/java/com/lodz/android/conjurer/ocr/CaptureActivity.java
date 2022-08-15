@@ -66,7 +66,6 @@ public final class CaptureActivity extends Activity {
 
     private CameraManager cameraManager;
     private CaptureActivityHandler handler;
-    private boolean hasSurface;
     private boolean isContinuousModeActive = false; // Whether we are doing OCR in continuous mode
     private boolean isPaused;
     private ProgressDialog indeterminateDialog; // also for initOcr - init OCR engine
@@ -178,19 +177,13 @@ public final class CaptureActivity extends Activity {
         mViewfinderView.setCameraManager(cameraManager);
         handler = null;
         mResultBean = null;
-        hasSurface = false;
     }
 
 
     private final SurfaceHolder.Callback mCallback = new SurfaceHolder.Callback() {
         @Override
         public void surfaceCreated(@NonNull SurfaceHolder holder) {
-            // Only initialize the camera if the OCR engine is ready to go.
-            if (!hasSurface) {
-                Log.d(TAG, "surfaceCreated(): calling initCamera()...");
-                initCamera(holder);
-            }
-            hasSurface = true;
+            initCamera(holder);
         }
 
         @Override
@@ -200,7 +193,7 @@ public final class CaptureActivity extends Activity {
 
         @Override
         public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
-            hasSurface = false;
+            mSurfaceHolder.removeCallback(mCallback);
         }
     };
 
@@ -208,13 +201,8 @@ public final class CaptureActivity extends Activity {
     protected void onResume() {
         super.onResume();
         showStandardUI();
-        // Set up the camera preview surface.
-
-        if (!hasSurface) {
-            mSurfaceHolder.addCallback(mCallback);
-            mSurfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-        }
-
+        mSurfaceHolder.addCallback(mCallback);
+        mSurfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
         resumeOCR();
     }
 
@@ -241,11 +229,6 @@ public final class CaptureActivity extends Activity {
             mBaseApi.setVariable(TessBaseAPI.VAR_CHAR_WHITELIST, mRequestBean.getWhiteList());//白名单
         }
 
-        if (hasSurface) {
-            // The activity was paused but not stopped, so the surface still exists. Therefore
-            // surfaceCreated() won't be called, so init the camera here.
-            initCamera(mSurfaceHolder);
-        }
     }
 
     /** Called when the shutter button is pressed in continuous mode. */
@@ -290,10 +273,6 @@ public final class CaptureActivity extends Activity {
 
         } catch (IOException ioe) {
             showErrorMessage("Error", "Could not initialize camera. Please try restarting device.");
-        } catch (RuntimeException e) {
-            // Barcode Scanner has seen crashes in the wild of this variety:
-            // java.?lang.?RuntimeException: Fail to connect to camera service
-            showErrorMessage("Error", "Could not initialize camera. Please try restarting device.");
         }
     }
 
@@ -305,10 +284,7 @@ public final class CaptureActivity extends Activity {
 
         // Stop using the camera, to avoid conflicting with other camera-based apps
         cameraManager.closeDriver();
-
-        if (!hasSurface) {
-            mSurfaceHolder.removeCallback(mCallback);
-        }
+        mSurfaceHolder.removeCallback(mCallback);
         super.onPause();
     }
 
