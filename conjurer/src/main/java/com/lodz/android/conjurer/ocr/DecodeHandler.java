@@ -10,7 +10,7 @@ import android.util.Log;
 import com.googlecode.leptonica.android.Pixa;
 import com.googlecode.leptonica.android.ReadFile;
 import com.googlecode.tesseract.android.TessBaseAPI;
-import com.lodz.android.conjurer.bean.OcrResultBean;
+import com.lodz.android.conjurer.data.bean.OcrResultBean;
 import com.lodz.android.conjurer.config.Constant;
 import com.lodz.android.conjurer.ocr.task.OcrRecognizeAsyncTask;
 import com.lodz.android.conjurer.widget.PlanarYUVLuminanceSource;

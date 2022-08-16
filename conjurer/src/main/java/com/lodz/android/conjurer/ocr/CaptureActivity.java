@@ -33,8 +33,8 @@ import androidx.appcompat.widget.AppCompatToggleButton;
 
 import com.googlecode.tesseract.android.TessBaseAPI;
 import com.lodz.android.conjurer.R;
-import com.lodz.android.conjurer.bean.OcrRequestBean;
-import com.lodz.android.conjurer.bean.OcrResultBean;
+import com.lodz.android.conjurer.data.bean.OcrRequestBean;
+import com.lodz.android.conjurer.data.bean.OcrResultBean;
 import com.lodz.android.conjurer.camera.CameraManager;
 import com.lodz.android.conjurer.camera.ShutterButton;
 import com.lodz.android.conjurer.config.Constant;
@@ -129,7 +129,7 @@ public final class CaptureActivity extends Activity {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 
-        setContentView(R.layout.activity_capture);
+        setContentView(R.layout.cj_activity_capture);
         mSurfaceView = findViewById(R.id.surface_view);
         mSurfaceHolder = mSurfaceView.getHolder();
 
@@ -142,7 +142,7 @@ public final class CaptureActivity extends Activity {
         mPreviewResultTv = findViewById(R.id.preview_result_tv);
         mPreviewStatusTv = findViewById(R.id.preview_status_tv);
 
-        mShutterButton = findViewById(R.id.shutter_button);
+        mShutterButton = findViewById(R.id.shutter_btn);
         mShutterButton.setOnShutterButtonListener(new ShutterButton.OnShutterButtonListener() {
             @Override
             public void onActionDownFocus(@NonNull ShutterButton btn, boolean pressed) {

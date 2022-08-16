@@ -1,4 +1,4 @@
-package com.lodz.android.conjurer.bean
+package com.lodz.android.conjurer.data.bean
 
 import android.content.Context
 import android.graphics.*

@@ -35,4 +35,20 @@ object Constant {
     const val DEFAULT_BLACKLIST = "!@#$%^&*()_+=-[]}{;:'\"\\|~`,./<>?"
     /** 默认识别白名单 */
     const val DEFAULT_WHITELIST = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+
+    /** 识别成功 */
+    const val TYPE_EVENT_SUCCESS = 0
+    /** 相机打开失败 */
+    const val TYPE_EVENT_ERROR_CAMERA_OPEN_FAIL = 1
+    /** 训练数据存放目录创建失败 */
+    const val TYPE_EVENT_ERROR_DIR_CREATE_FAIL = 2
+    /** 训练文件安装失败 */
+    const val TYPE_EVENT_ERROR_TRAINED_DATA_INSTALL_FAIL = 3
+    /** OCR初始化失败 */
+    const val TYPE_EVENT_ERROR_OCR_INIT_FAIL = 4
+
+
+
+
+
 }

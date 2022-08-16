@@ -16,7 +16,7 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.lodz.android.conjurer.R;
-import com.lodz.android.conjurer.bean.OcrResultBean;
+import com.lodz.android.conjurer.data.bean.OcrResultBean;
 import com.lodz.android.conjurer.camera.CameraManager;
 
 import java.util.List;

@@ -5,7 +5,7 @@ import android.os.Build
 import android.os.Bundle
 import android.view.View
 import com.googlecode.tesseract.android.TessBaseAPI
-import com.lodz.android.conjurer.bean.InitStatus
+import com.lodz.android.conjurer.data.status.InitStatus
 import com.lodz.android.conjurer.config.Constant
 import com.lodz.android.conjurer.ocr.Conjurer
 import com.lodz.android.conjurer.ocr.OnConjurerListener
@@ -56,15 +56,24 @@ class MainActivity : BaseActivity() {
                     override fun onInit(status: InitStatus) {
                         addLog("${Thread.currentThread().name} onInit : ${status.msg}")
                     }
-                    override fun onError(t: Throwable, msg: String) {
-                        addLog("${Thread.currentThread().name} error : ${t.message} , $msg")
+
+                    override fun onOcrResult(text: String) {
+                        addLog("${Thread.currentThread().name} onOcrResult : $text")
+                    }
+
+                    override fun onError(type: Int, t: Throwable, msg: String) {
+                        addLog("${Thread.currentThread().name} onError : $type , ${t.message} , $msg")
                     }
                 })
                 .openCamera(this)
         }
 
-        mBinding.cleanBtn.setOnClickListener {
+        mBinding.cleanDataBtn.setOnClickListener {
             Conjurer.create().deleteTessdataDir(getContext())
+        }
+
+        mBinding.cleanLogBtn.setOnClickListener {
+            mBinding.resultTv.text = ""
         }
     }
 

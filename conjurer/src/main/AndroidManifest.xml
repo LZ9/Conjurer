@@ -14,6 +14,17 @@
             android:windowSoftInputMode="stateAlwaysHidden">
 
         </activity>
+
+        <activity
+            android:name=".ocr.OcrCameraActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:exported="true"
+            android:screenOrientation="landscape"
+            android:windowSoftInputMode="stateAlwaysHidden">
+
+        </activity>
+
+
     </application>
 
 </manifest>

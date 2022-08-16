@@ -1,4 +1,4 @@
-package com.lodz.android.conjurer.bean
+package com.lodz.android.conjurer.data.status
 
 /**
  * 初始化状态

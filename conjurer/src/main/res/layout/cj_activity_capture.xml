@@ -82,7 +82,7 @@
     </FrameLayout>
 
     <com.lodz.android.conjurer.camera.ShutterButton
-        android:id="@+id/shutter_button"
+        android:id="@+id/shutter_btn"
         android:layout_width="70dp"
         android:layout_height="70dp"
         android:layout_gravity="center_vertical|end"

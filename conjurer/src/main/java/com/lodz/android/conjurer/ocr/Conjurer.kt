@@ -2,13 +2,18 @@ package com.lodz.android.conjurer.ocr
 
 import android.content.Context
 import com.googlecode.tesseract.android.TessBaseAPI
-import com.lodz.android.conjurer.bean.InitStatus
-import com.lodz.android.conjurer.bean.OcrRequestBean
+import com.lodz.android.conjurer.data.status.InitStatus
+import com.lodz.android.conjurer.data.event.OcrEvent
+import com.lodz.android.conjurer.data.bean.OcrRequestBean
 import com.lodz.android.conjurer.config.Constant
 import com.lodz.android.conjurer.transformer.OcrResultTransformer
 import com.lodz.android.conjurer.util.OcrUtils
 import kotlinx.coroutines.*
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 import java.io.File
+import java.lang.RuntimeException
 
 /**
  * OCR文字识别
@@ -122,6 +127,7 @@ class Conjurer private constructor(){
 
     /** 启动相机 */
     fun openCamera(context: Context) {
+        EventBus.getDefault().register(this)
         MainScope().launch {
             var isCheckSuccess: Boolean
             withContext(Dispatchers.IO) {
@@ -131,7 +137,7 @@ class Conjurer private constructor(){
                 return@launch
             }
             mListener?.onInit(InitStatus.COMPLETE)
-            CaptureActivity.start(context, OcrRequestBean(mDataPath, mLanguage, mEngineMode, mPageSegMode, mBlackList, mWhiteList, mTransformerList))
+            OcrCameraActivity.start(context, OcrRequestBean(mDataPath, mLanguage, mEngineMode, mPageSegMode, mBlackList, mWhiteList, mTransformerList))
         }
     }
 
@@ -150,7 +156,11 @@ class Conjurer private constructor(){
                 mTessApi = TessBaseAPI()
                 val isSuccess = mTessApi?.init(mDataPath, mLanguage, mEngineMode) ?: false
                 if (!isSuccess){
-                    mListener?.onError(IllegalArgumentException("TessApi init fail"), "OCR初始化失败")
+                    mListener?.onError(
+                        Constant.TYPE_EVENT_ERROR_OCR_INIT_FAIL,
+                        IllegalArgumentException("TessApi init fail"),
+                        "OCR初始化失败"
+                    )
                     return@launch
                 }
             }
@@ -173,14 +183,26 @@ class Conjurer private constructor(){
         val dir = File(path)
         dir.mkdirs()//创建训练数据存放目录
         if (!dir.exists()) {
-            runOnMain { mListener?.onError(IllegalArgumentException("couldn't create $path"), "无法创建训练数据存放目录") }
+            runOnMain {
+                mListener?.onError(
+                    Constant.TYPE_EVENT_ERROR_DIR_CREATE_FAIL,
+                    IllegalArgumentException("couldn't create $path"),
+                    "无法创建训练数据存放目录"
+                )
+            }
             return false
         }
         runOnMain { mListener?.onInit(InitStatus.CHECK_LOCAL_TRAINED_DATA) }
         for (zipFileName in mTrainedDataZipFileNames) {
             val hasTrainedData = OcrUtils.installZipFromAssets(context, path, zipFileName) //训练文件是否安装
             if (!hasTrainedData.first) {
-                runOnMain { mListener?.onError(hasTrainedData.second ?: IllegalArgumentException("trained data install fail"), "训练文件安装失败") }
+                runOnMain {
+                    mListener?.onError(
+                        Constant.TYPE_EVENT_ERROR_TRAINED_DATA_INSTALL_FAIL,
+                        hasTrainedData.second ?: IllegalArgumentException("trained data install fail"),
+                        "训练文件安装失败"
+                    )
+                }
                 return false
             }
         }
@@ -202,5 +224,13 @@ class Conjurer private constructor(){
         withContext(Dispatchers.Main) { action() }
     }
 
-
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onOcrEvent(event: OcrEvent) {
+        if (event.isSuccess()) {
+            mListener?.onOcrResult(event.text)
+            return
+        }
+        mListener?.onError(event.type, event.t ?: RuntimeException("orc fail"), event.msg)
+        EventBus.getDefault().unregister(this)
+    }
 }

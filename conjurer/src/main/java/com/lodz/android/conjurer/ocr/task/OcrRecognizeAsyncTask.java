@@ -12,7 +12,7 @@ import com.googlecode.leptonica.android.ReadFile;
 import com.googlecode.tesseract.android.ResultIterator;
 import com.googlecode.tesseract.android.TessBaseAPI;
 import com.googlecode.tesseract.android.TessBaseAPI.PageIteratorLevel;
-import com.lodz.android.conjurer.bean.OcrResultBean;
+import com.lodz.android.conjurer.data.bean.OcrResultBean;
 import com.lodz.android.conjurer.config.Constant;
 import com.lodz.android.conjurer.ocr.CaptureActivity;
 

@@ -1,4 +1,4 @@
-package com.lodz.android.conjurer.bean
+package com.lodz.android.conjurer.data.bean
 
 import com.lodz.android.conjurer.transformer.OcrResultTransformer
 import java.io.Serializable
