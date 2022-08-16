@@ -63,6 +63,7 @@ class OcrCameraActivity : AppCompatActivity() {
         val requestBean = intent.getSerializableExtra(EXTRA_OCR_REQUEST) as? OcrRequestBean
         mRequestBean = requestBean
         if (requestBean == null){
+            sendErrorEvent(Constant.TYPE_EVENT_ERROR_REQUEST_PARAM_NULL, IllegalArgumentException("request bean is null"), "请求参数为空")
             finish()
             return
         }
@@ -150,7 +151,7 @@ class OcrCameraActivity : AppCompatActivity() {
             mCameraManager.startPreview()
         } catch (e: Exception) {
             e.printStackTrace()
-            EventBus.getDefault().post(OcrEvent(Constant.TYPE_EVENT_ERROR_CAMERA_OPEN_FAIL, "", e, "相机启动失败"))
+            sendErrorEvent(Constant.TYPE_EVENT_ERROR_CAMERA_OPEN_FAIL, e, "相机启动失败")
             finish()
         }
     }
@@ -182,26 +183,17 @@ class OcrCameraActivity : AppCompatActivity() {
     }
 
 
+    /** 发送失败事件 */
+    private fun sendErrorEvent(type: Int, t: Throwable, msg: String) {
+        EventBus.getDefault().post(OcrEvent(type, "", t, msg))
+    }
 
+    /** 发送成功事件 */
+    private fun sendSuccessEvent(result: String) {
+        EventBus.getDefault().post(OcrEvent(Constant.TYPE_EVENT_SUCCESS, result, null, "识别成功"))
+    }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    /** 弹出提示语 */
     private fun toastShort(text: String) {
         Toast.makeText(getContext(), text, Toast.LENGTH_SHORT).show()
     }

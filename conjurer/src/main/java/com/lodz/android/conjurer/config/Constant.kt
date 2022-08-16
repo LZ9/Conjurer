@@ -46,8 +46,8 @@ object Constant {
     const val TYPE_EVENT_ERROR_TRAINED_DATA_INSTALL_FAIL = 3
     /** OCR初始化失败 */
     const val TYPE_EVENT_ERROR_OCR_INIT_FAIL = 4
-
-
+    /** 请求参数为空 */
+    const val TYPE_EVENT_ERROR_REQUEST_PARAM_NULL = 5
 
 
 
