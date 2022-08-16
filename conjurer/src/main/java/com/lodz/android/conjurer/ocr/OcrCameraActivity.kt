@@ -1,5 +1,6 @@
 package com.lodz.android.conjurer.ocr
 
+import android.app.ProgressDialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -9,10 +10,12 @@ import android.view.Window
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.lodz.android.conjurer.camera.CameraManager
+import com.lodz.android.conjurer.R
+import com.lodz.android.conjurer.camera.CameraHelper
 import com.lodz.android.conjurer.camera.ShutterButton
 import com.lodz.android.conjurer.config.Constant
 import com.lodz.android.conjurer.data.bean.OcrRequestBean
+import com.lodz.android.conjurer.data.bean.OcrResultBean
 import com.lodz.android.conjurer.data.event.OcrEvent
 import com.lodz.android.conjurer.databinding.CjActivityCaptureBinding
 import com.lodz.android.conjurer.ocr.recog.OcrRecognizeManager
@@ -43,9 +46,11 @@ class OcrCameraActivity : AppCompatActivity() {
     /** 预览页  */
     private var mSurfaceHolder: SurfaceHolder? = null
     /** 相机  */
-    private var mCameraManager: CameraManager = CameraManager(getContext())
+    private var mCameraHelper: CameraHelper = CameraHelper()
     /** 识别封装类  */
     private var mOcrRecognizeManager: OcrRecognizeManager = OcrRecognizeManager.create()
+
+    private var mPgDialog: ProgressDialog? = null
 
     private val mSurfaceHolderCallback = object :SurfaceHolder.Callback{
         override fun surfaceCreated(holder: SurfaceHolder) {
@@ -73,15 +78,17 @@ class OcrCameraActivity : AppCompatActivity() {
 
         setContentView(mBinding.root)
 
+        initPgDialog()
+
         mSurfaceHolder = mBinding.surfaceView.holder
 
         mBinding.shutterBtn.setOnShutterButtonListener(object :ShutterButton.OnShutterButtonListener{
             override fun onActionDownFocus(btn: ShutterButton, pressed: Boolean) {
-                toastShort("onActionDownFocus")
+                mCameraHelper.requestAutoFocus()//相机聚焦
             }
 
             override fun onActionUpClick(btn: ShutterButton) {
-                toastShort("onActionUpClick")
+                mOcrRecognizeManager.ocrDecode()
             }
         })
 
@@ -89,66 +96,79 @@ class OcrCameraActivity : AppCompatActivity() {
             toastShort("previewTogbtn isChecked : $isChecked")
         }
 
-        mBinding.viewfinderView.setCameraManager(mCameraManager)
-        mOcrRecognizeManager.init(mCameraManager, requestBean)
+        mBinding.viewfinderView.setCameraHelper(mCameraHelper)
+        mOcrRecognizeManager.init(mCameraHelper, requestBean)
         mOcrRecognizeManager.setOnRecognizeListener(object :OnRecognizeListener{
-            override fun onOcrDecode(cameraX: Int, cameraY: Int, data: ByteArray) {
-                toastShort("onOcrDecode")
+            override fun onOcrDecodeStart() {
+                mPgDialog?.show()
             }
 
-            override fun onOcrDecodeSucceeded() {
-                toastShort("onOcrDecodeSucceeded")
+            override fun onOcrDecodeResult(resultBean: OcrResultBean) {
+                showResultUI(resultBean)
             }
 
-            override fun onOcrDecodeFailed() {
-                toastShort("onOcrDecodeFailed")
-            }
-
-            override fun onOcrContinuousDecode(cameraX: Int, cameraY: Int, data: ByteArray) {
-                toastShort("onOcrContinuousDecode")
-            }
-
-            override fun onOcrContinuousDecodeSucceeded() {
-                toastShort("onOcrContinuousDecodeSucceeded")
-            }
-
-            override fun onOcrContinuousDecodeFailed() {
-                toastShort("onOcrContinuousDecodeFailed")
-            }
-
-            override fun onRestartPreview() {
-                toastShort("onRestartPreview")
-            }
-
-            override fun onQuit() {
-                toastShort("onQuit")
+            override fun onOcrDecodeEnd() {
+                mPgDialog?.dismiss()
             }
         })
         showStandardUI()
     }
 
-    private fun showStandardUI(){
+    /** 初始化加载库 */
+    private fun initPgDialog() {
+        mPgDialog = ProgressDialog(getContext())
+        mPgDialog?.setMessage(getString(R.string.cj_app_ocr_decoding))
+        mPgDialog?.setCancelable(false)
+        mPgDialog?.setCanceledOnTouchOutside(false)
+    }
+
+    /** 显示标准扫描UI */
+    private fun showStandardUI() {
         mBinding.resultLayout.visibility = View.GONE
         mBinding.resultTv.text = ""
         mBinding.previewLayout.visibility = View.GONE
         mBinding.previewStatusTv.text = ""
         mBinding.previewResultTv.text = ""
         mBinding.viewfinderView.visibility = View.VISIBLE
+        mBinding.viewfinderView.drawViewfinder()
         mBinding.shutterBtn.visibility = View.VISIBLE
         mBinding.viewfinderView.removeResultText()
+        mBinding.previewTogbtn.visibility = View.VISIBLE
     }
 
-    private fun showResultUI(){
+    /** 显示结果UI */
+    private fun showResultUI(bean: OcrResultBean) {
         mBinding.resultLayout.visibility = View.VISIBLE
         mBinding.shutterBtn.visibility = View.GONE
         mBinding.previewLayout.visibility = View.GONE
         mBinding.viewfinderView.visibility = View.GONE
+        mBinding.previewTogbtn.visibility = View.GONE
+
+        if (bean.text.isEmpty()){
+            toastShort(getString(R.string.cj_app_ocr_decode_fail))
+        }
+        val bitmap = bean.getAnnotatedBitmap(this, R.color.cj_color_00ccff)
+        if (bitmap == null) {
+            mBinding.resultImg.visibility = View.GONE
+        } else {
+            mBinding.resultImg.visibility = View.VISIBLE
+            mBinding.resultImg.setImageBitmap(bitmap)
+        }
+        var text = bean.text
+        val requestBean = mRequestBean
+        if (requestBean != null) {
+            for (transformer in requestBean.transformerList) {
+                text = transformer.onResultTransformer(text)
+            }
+        }
+        mBinding.resultTv.text = text
     }
 
+    /** 初始化相机 */
     private fun initCamera(holder: SurfaceHolder){
         try {
-            mCameraManager.openDriver(holder)
-            mCameraManager.startPreview()
+            mCameraHelper.openDriver(getContext(), holder)
+            mCameraHelper.startPreview()
         } catch (e: Exception) {
             e.printStackTrace()
             sendErrorEvent(Constant.TYPE_EVENT_ERROR_CAMERA_OPEN_FAIL, e, "相机启动失败")
@@ -164,8 +184,8 @@ class OcrCameraActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        mCameraManager.stopPreview()
-        mCameraManager.closeDriver()
+        mCameraHelper.stopPreview()
+        mCameraHelper.closeDriver()
         mSurfaceHolder?.removeCallback(mSurfaceHolderCallback)
     }
 
@@ -181,7 +201,6 @@ class OcrCameraActivity : AppCompatActivity() {
         }
         super.onBackPressed()
     }
-
 
     /** 发送失败事件 */
     private fun sendErrorEvent(type: Int, t: Throwable, msg: String) {

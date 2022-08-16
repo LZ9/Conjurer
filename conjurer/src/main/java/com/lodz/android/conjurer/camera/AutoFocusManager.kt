@@ -11,7 +11,7 @@ import java.util.*
  * @author zhouL
  * @date 2022/8/5
  */
-class AutoFocusManager(private val context: Context, private val camera: Camera) {
+class AutoFocusManager(private val camera: Camera) {
 
     /** 自动对焦间隔（毫秒） */
     private val AUTO_FOCUS_INTERVAL_MS = 1000L
@@ -60,7 +60,6 @@ class AutoFocusManager(private val context: Context, private val camera: Camera)
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            Toast.makeText(context, "您的相机不支持自动对焦", Toast.LENGTH_SHORT).show()
             isActive = false
         }
     }

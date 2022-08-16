@@ -3,4 +3,7 @@
     <string name="cj_app_preview_on">开启预览</string>
     <string name="cj_app_preview_off">关闭预览</string>
     <string name="cj_app_focus">长按聚焦</string>
+    <string name="cj_app_ocr_decoding">正在进行识别</string>
+    <string name="cj_app_ocr_decode_fail">识别失败，请调整识别框包裹文字</string>
+
 </resources>

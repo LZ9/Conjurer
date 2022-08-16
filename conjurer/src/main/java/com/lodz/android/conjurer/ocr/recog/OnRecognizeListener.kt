@@ -1,5 +1,7 @@
 package com.lodz.android.conjurer.ocr.recog
 
+import com.lodz.android.conjurer.data.bean.OcrResultBean
+
 /**
  * 识别监听器
  * @author zhouL
@@ -7,19 +9,26 @@ package com.lodz.android.conjurer.ocr.recog
  */
 interface OnRecognizeListener {
 
-    fun onOcrDecode(cameraX: Int, cameraY: Int, data: ByteArray)
+    fun onOcrDecodeStart()
 
-    fun onOcrDecodeSucceeded()
+    fun onOcrDecodeResult(resultBean: OcrResultBean)
 
-    fun onOcrDecodeFailed()
+    fun onOcrDecodeEnd()
 
-    fun onOcrContinuousDecode(cameraX: Int, cameraY: Int, data: ByteArray)
 
-    fun onOcrContinuousDecodeSucceeded()
-
-    fun onOcrContinuousDecodeFailed()
-
-    fun onRestartPreview()
-
-    fun onQuit()
+//    fun onOcrDecode(cameraX: Int, cameraY: Int, data: ByteArray)
+//
+//    fun onOcrDecodeSucceeded()
+//
+//    fun onOcrDecodeFailed()
+//
+//    fun onOcrContinuousDecode(cameraX: Int, cameraY: Int, data: ByteArray)
+//
+//    fun onOcrContinuousDecodeSucceeded()
+//
+//    fun onOcrContinuousDecodeFailed()
+//
+//    fun onRestartPreview()
+//
+//    fun onQuit()
 }

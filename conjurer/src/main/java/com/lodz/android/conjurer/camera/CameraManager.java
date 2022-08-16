@@ -26,7 +26,6 @@ public final class CameraManager {
     private static final int MAX_FRAME_WIDTH = 800; // originally 480
     private static final int MAX_FRAME_HEIGHT = 600; // originally 360
 
-    private final Context context;
     private final CameraConfigurationManager configManager;
     private Camera camera;
     private AutoFocusManager autoFocusManager;
@@ -43,7 +42,6 @@ public final class CameraManager {
     private final PreviewCallback previewCallback;
 
     public CameraManager(Context context) {
-        this.context = context;
         this.configManager = new CameraConfigurationManager(context);
         previewCallback = new PreviewCallback(configManager);
     }
@@ -100,7 +98,7 @@ public final class CameraManager {
         if (theCamera != null && !previewing) {
             theCamera.startPreview();
             previewing = true;
-            autoFocusManager = new AutoFocusManager(context, camera);
+            autoFocusManager = new AutoFocusManager(camera);
         }
     }
 
@@ -135,12 +133,24 @@ public final class CameraManager {
         }
     }
 
+    public synchronized void requestOcrDecode(Camera.PreviewCallback callback) {
+        Camera theCamera = camera;
+        if (theCamera != null && previewing) {
+            theCamera.setOneShotPreviewCallback(callback);
+        }
+    }
+
+
     /**
      * Asks the camera hardware to perform an autofocus.
      * @param delay Time delay to send with the request
      */
     public synchronized void requestAutoFocus(long delay) {
         autoFocusManager.start(delay);
+    }
+
+    public synchronized void requestAutoFocus() {
+        autoFocusManager.start();
     }
 
     /**

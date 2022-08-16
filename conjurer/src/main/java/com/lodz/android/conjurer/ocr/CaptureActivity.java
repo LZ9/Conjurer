@@ -135,7 +135,7 @@ public final class CaptureActivity extends Activity {
 
         mViewfinderView = findViewById(R.id.viewfinder_view);
         mResultLayout = findViewById(R.id.result_layout);
-        mResultImg = findViewById(R.id.image_view);
+        mResultImg = findViewById(R.id.result_img);
         mResultTv = findViewById(R.id.result_tv);
 
         mPreviewLayout = findViewById(R.id.preview_layout);
