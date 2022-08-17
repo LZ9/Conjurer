@@ -30,7 +30,6 @@ import java.util.List;
  * The code for this class was adapted from the ZXing project: http://code.google.com/p/zxing
  */
 public final class ViewfinderView extends View {
-    //private static final long ANIMATION_DELAY = 80L;
 
     /** Flag to draw boxes representing the results from TessBaseAPI::GetRegions(). */
     static final boolean DRAW_REGION_BOXES = false;
@@ -47,14 +46,12 @@ public final class ViewfinderView extends View {
     /** Flag to draw word text with a background varying from transparent to opaque. */
     static final boolean DRAW_TRANSPARENT_WORD_BACKGROUNDS = false;
 
-    /** Flag to draw boxes representing the results from TessBaseAPI::GetCharacters(). */
-    static final boolean DRAW_CHARACTER_BOXES = false;
-
     /** Flag to draw the text of words within their respective boxes from TessBaseAPI::GetWords(). */
     static final boolean DRAW_WORD_TEXT = false;
 
-    /** Flag to draw each character in its respective box from TessBaseAPI::GetCharacters(). */
-    static final boolean DRAW_CHARACTER_TEXT = false;
+
+    private final static int BUFFER = 50;
+    private final static int BIG_BUFFER = 60;
 
     private CameraHelper mCameraHelper;
     private final Paint paint;
@@ -67,7 +64,6 @@ public final class ViewfinderView extends View {
     private List<Rect> textlineBoundingBoxes;
     private List<Rect> stripBoundingBoxes;
     private List<Rect> wordBoundingBoxes;
-    private List<Rect> characterBoundingBoxes;
     //  Rect bounds;
     private Rect previewFrame;
     private Rect rect;
@@ -100,6 +96,7 @@ public final class ViewfinderView extends View {
     @Override
     public void onDraw(Canvas canvas) {
         Rect frame = mCameraHelper.getFramingRect();
+
         if (frame == null) {
             return;
         }
@@ -264,81 +261,6 @@ public final class ViewfinderView extends View {
 
                     }
                 }
-
-//        if (DRAW_CHARACTER_BOXES || DRAW_CHARACTER_TEXT) {
-//          characterBoundingBoxes = resultText.getCharacterBoundingBoxes();
-//        }
-//
-//        if (DRAW_CHARACTER_BOXES) {
-//          // Draw bounding boxes around each character
-//          paint.setAlpha(0xA0);
-//          paint.setColor(0xFF00FF00);
-//          paint.setStyle(Style.STROKE);
-//          paint.setStrokeWidth(1);
-//          for (int c = 0; c < characterBoundingBoxes.size(); c++) {
-//            Rect characterRect = characterBoundingBoxes.get(c);
-//            canvas.drawRect(frame.left + characterRect.left * scaleX,
-//                frame.top + characterRect.top * scaleY,
-//                frame.left + characterRect.right * scaleX,
-//                frame.top + characterRect.bottom * scaleY, paint);
-//          }
-//        }
-//
-//        if (DRAW_CHARACTER_TEXT) {
-//          // Draw letters individually
-//          for (int i = 0; i < characterBoundingBoxes.size(); i++) {
-//            Rect r = characterBoundingBoxes.get(i);
-//
-//            // Draw a white background for every letter
-//            int meanConfidence = resultText.getMeanConfidence();
-//            paint.setColor(Color.WHITE);
-//            paint.setAlpha(meanConfidence * (255 / 100));
-//            paint.setStyle(Style.FILL);
-//            canvas.drawRect(frame.left + r.left * scaleX,
-//                frame.top + r.top * scaleY,
-//                frame.left + r.right * scaleX,
-//                frame.top + r.bottom * scaleY, paint);
-//
-//            // Draw each letter, in black
-//            paint.setColor(Color.BLACK);
-//            paint.setAlpha(0xFF);
-//            paint.setAntiAlias(true);
-//            paint.setTextAlign(Align.LEFT);
-//            String letter = "";
-//            try {
-//              char c = resultText.getText().replace("\n","").replace(" ", "").charAt(i);
-//              letter = Character.toString(c);
-//
-//              if (!letter.equals("-") && !letter.equals("_")) {
-//
-//                // Adjust text size to fill rect
-//                paint.setTextSize(100);
-//                paint.setTextScaleX(1.0f);
-//
-//                // ask the paint for the bounding rect if it were to draw this text
-//                Rect bounds = new Rect();
-//                paint.getTextBounds(letter, 0, letter.length(), bounds);
-//
-//                // get the height that would have been produced
-//                int h = bounds.bottom - bounds.top;
-//
-//                // figure out what textSize setting would create that height of text
-//                float size  = (((float)(r.height())/h)*100f);
-//
-//                // and set it into the paint
-//                paint.setTextSize(size);
-//
-//                // Draw the text as is. We don't really need to set the text scale, because the dimensions
-//                // of the Rect should already be suited for drawing our letter.
-//                canvas.drawText(letter, frame.left + r.left * scaleX, frame.top + r.bottom * scaleY, paint);
-//              }
-//            } catch (StringIndexOutOfBoundsException e) {
-//              e.printStackTrace();
-//            } catch (Exception e) {
-//              e.printStackTrace();
-//            }
-//          }
-//        }
             }
 
         }
@@ -406,8 +328,7 @@ public final class ViewfinderView extends View {
                 try {
                     Rect rect = mCameraHelper.getFramingRect();
 
-                    final int BUFFER = 50;
-                    final int BIG_BUFFER = 60;
+
                     if (lastX >= 0) {
                         // Adjust the size of the viewfinder rectangle. Check if the touch event occurs in the corner areas first, because the regions overlap.
                         if (((currentX >= rect.left - BIG_BUFFER && currentX <= rect.left + BIG_BUFFER) || (lastX >= rect.left - BIG_BUFFER && lastX <= rect.left + BIG_BUFFER))
@@ -452,7 +373,8 @@ public final class ViewfinderView extends View {
                             removeResultText();
                         }
                     }
-                } catch (NullPointerException e) {
+                } catch (Exception e) {
+                    e.printStackTrace();
                     Log.e("TAG", "Framing rect not available", e);
                 }
                 invalidate();

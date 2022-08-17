@@ -17,7 +17,7 @@ import com.lodz.android.conjurer.config.Constant
 import com.lodz.android.conjurer.data.bean.OcrRequestBean
 import com.lodz.android.conjurer.data.bean.OcrResultBean
 import com.lodz.android.conjurer.data.event.OcrEvent
-import com.lodz.android.conjurer.databinding.CjActivityCaptureBinding
+import com.lodz.android.conjurer.databinding.CjActivityOcrCameraBinding
 import com.lodz.android.conjurer.ocr.recog.OcrRecognizeManager
 import com.lodz.android.conjurer.ocr.recog.OnRecognizeListener
 import org.greenrobot.eventbus.EventBus
@@ -39,7 +39,7 @@ class OcrCameraActivity : AppCompatActivity() {
         }
     }
 
-    private val mBinding: CjActivityCaptureBinding by lazy { CjActivityCaptureBinding.inflate(layoutInflater) }
+    private val mBinding: CjActivityOcrCameraBinding by lazy { CjActivityOcrCameraBinding.inflate(layoutInflater) }
 
     /** OCR请求数据体  */
     private var mRequestBean: OcrRequestBean? = null
@@ -96,7 +96,7 @@ class OcrCameraActivity : AppCompatActivity() {
             toastShort("previewTogbtn isChecked : $isChecked")
         }
 
-        mBinding.viewfinderView.setCameraHelper(mCameraHelper)
+//        mBinding.viewfinderLayout.setCameraHelper(mCameraHelper)
         mOcrRecognizeManager.init(mCameraHelper, requestBean)
         mOcrRecognizeManager.setOnRecognizeListener(object :OnRecognizeListener{
             override fun onOcrDecodeStart() {
@@ -129,10 +129,10 @@ class OcrCameraActivity : AppCompatActivity() {
         mBinding.previewLayout.visibility = View.GONE
         mBinding.previewStatusTv.text = ""
         mBinding.previewResultTv.text = ""
-        mBinding.viewfinderView.visibility = View.VISIBLE
-        mBinding.viewfinderView.drawViewfinder()
+        mBinding.viewfinderLayout.visibility = View.VISIBLE
+//        mBinding.viewfinderLayout.drawViewfinder()
         mBinding.shutterBtn.visibility = View.VISIBLE
-        mBinding.viewfinderView.removeResultText()
+//        mBinding.viewfinderLayout.removeResultText()
         mBinding.previewTogbtn.visibility = View.VISIBLE
     }
 
@@ -141,7 +141,7 @@ class OcrCameraActivity : AppCompatActivity() {
         mBinding.resultLayout.visibility = View.VISIBLE
         mBinding.shutterBtn.visibility = View.GONE
         mBinding.previewLayout.visibility = View.GONE
-        mBinding.viewfinderView.visibility = View.GONE
+        mBinding.viewfinderLayout.visibility = View.GONE
         mBinding.previewTogbtn.visibility = View.GONE
 
         if (bean.text.isEmpty()){

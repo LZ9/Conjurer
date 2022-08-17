@@ -15,7 +15,8 @@
     <color name="cj_color_aaffffff">#aaffffff</color>
     <color name="cj_color_000000">#000000</color>  <!-- viewfinder exterior darkened area -->
     <color name="cj_color_00ccff">#00CCFF</color>  <!-- viewfinder exterior darkened area -->
-
-
+    <color name="cj_color_60000000">#60000000</color>  <!-- viewfinder exterior darkened area -->
+    <color name="cj_color_d6d6d6">#d6d6d6</color> <!-- viewfinder rectangle -->
+    <color name="cj_color_ffffff">#ffffff</color>
 
 </resources>
