@@ -1,5 +1,7 @@
 package com.lodz.android.conjurer.ocr.recog
 
+import android.graphics.Bitmap
+import android.graphics.Point
 import android.graphics.Rect
 import com.googlecode.leptonica.android.ReadFile
 import com.googlecode.tesseract.android.TessBaseAPI
@@ -7,6 +9,7 @@ import com.googlecode.tesseract.android.TessBaseAPI.PageIteratorLevel
 import com.lodz.android.conjurer.camera.CameraHelper
 import com.lodz.android.conjurer.data.bean.OcrRequestBean
 import com.lodz.android.conjurer.data.bean.OcrResultBean
+import com.lodz.android.conjurer.widget.PlanarYUVLuminanceSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -28,6 +31,8 @@ class OcrRecognizeManager private constructor(){
     private var mBaseApi: TessBaseAPI? = null
     /** 监听器 */
     private var mListener: OnRecognizeListener? = null
+    /** 识别区域 */
+    private var mRecogRect: Rect? = null
 
     /** 初始化 */
     fun init(cameraHelper: CameraHelper, requestBean: OcrRequestBean) {
@@ -42,27 +47,38 @@ class OcrRecognizeManager private constructor(){
         mBaseApi?.setVariable(TessBaseAPI.VAR_CHAR_WHITELIST, requestBean.whiteList) //白名单
     }
 
+    /** 设置识别区域 */
+    fun setRecogRect(rect: Rect?) {
+        mRecogRect = rect
+    }
+
     /** 设置监听器 */
     fun setOnRecognizeListener(listener: OnRecognizeListener?) {
         mListener = listener
     }
 
-    fun ocrDecode() {
-        mCameraHelper?.requestOcrDecode { width, height, data ->
+    /** OCR识别 */
+    fun ocrCameraDecode(rect: Rect? = mRecogRect) {
+        if (rect == null){
+            mListener?.onOcrDecodeResult(OcrResultBean())
+            return
+        }
+        mCameraHelper?.requestOcrDecode { cameraResolution, screenResolution, data ->
             MainScope().launch {
                 mListener?.onOcrDecodeStart()
                 withContext(Dispatchers.IO) {
-                    decode(width, height, data)
+                    decode(createCameraGreyscaleBitmap(rect, cameraResolution, screenResolution, data))
                 }
                 mListener?.onOcrDecodeEnd()
             }
         }
     }
 
-    private suspend fun decode(width: Int, height: Int, data: ByteArray?) {
+    /** 识别图片内文字 */
+    private suspend fun decode(greyscaleBitmap: Bitmap?) {
         val bean = OcrResultBean()
         val startTime = System.currentTimeMillis()
-        bean.bitmap = mCameraHelper?.buildLuminanceSource(width, height, data)?.renderCroppedGreyscaleBitmap()
+        bean.bitmap = greyscaleBitmap
         try {
             mBaseApi?.setImage(ReadFile.readBitmap(bean.bitmap))
             bean.text = mBaseApi?.utF8Text ?: ""
@@ -90,6 +106,19 @@ class OcrRecognizeManager private constructor(){
             mBaseApi?.clear()
         }
         withContext(Dispatchers.Main) { mListener?.onOcrDecodeResult(bean) }
+    }
+
+    /** 生成灰度位图 */
+    private fun createCameraGreyscaleBitmap(rect: Rect, cameraResolution: Point, screenResolution: Point, data: ByteArray?): Bitmap? {
+        if (data == null) {
+            return null
+        }
+        val frameRect = Rect(rect)
+        frameRect.left = frameRect.left * cameraResolution.x / screenResolution.x
+        frameRect.right = frameRect.right * cameraResolution.x / screenResolution.x
+        frameRect.top = frameRect.top * cameraResolution.y / screenResolution.y
+        frameRect.bottom = frameRect.bottom * cameraResolution.y / screenResolution.y
+        return PlanarYUVLuminanceSource(data, cameraResolution.x, cameraResolution.y, frameRect.left, frameRect.top, frameRect.width(), frameRect.height(), false).renderCroppedGreyscaleBitmap()
     }
 
     fun release() {

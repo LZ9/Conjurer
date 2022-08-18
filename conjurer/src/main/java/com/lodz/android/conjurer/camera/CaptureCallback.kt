@@ -10,13 +10,13 @@ import android.hardware.Camera
  */
 class CaptureCallback(
     private val cameraResolution: Point?,
+    private val screenResolution: Point?,
     private val listener: OnCaptureListener
 ) : Camera.PreviewCallback {
 
     override fun onPreviewFrame(data: ByteArray?, camera: Camera?) {
-        if (cameraResolution != null) {
-            listener.onCapture(cameraResolution.x, cameraResolution.y, data)
+        if (cameraResolution != null && screenResolution != null) {
+            listener.onCapture(cameraResolution, screenResolution, data)
         }
     }
-
 }

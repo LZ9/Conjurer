@@ -88,7 +88,7 @@ class OcrCameraActivity : AppCompatActivity() {
             }
 
             override fun onActionUpClick(btn: ShutterButton) {
-                mOcrRecognizeManager.ocrDecode()
+                mOcrRecognizeManager.ocrCameraDecode()
             }
         })
 
@@ -96,7 +96,9 @@ class OcrCameraActivity : AppCompatActivity() {
             toastShort("previewTogbtn isChecked : $isChecked")
         }
 
-//        mBinding.viewfinderLayout.setCameraHelper(mCameraHelper)
+        mBinding.viewfinderLayout.setOnViewfinderChangeListener {
+            mOcrRecognizeManager.setRecogRect(it)
+        }
         mOcrRecognizeManager.init(mCameraHelper, requestBean)
         mOcrRecognizeManager.setOnRecognizeListener(object :OnRecognizeListener{
             override fun onOcrDecodeStart() {

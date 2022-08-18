@@ -30,7 +30,7 @@ class CameraHelper {
 
     /** 相机 */
     private var mCamera: Camera? = null
-    /**  */
+    /** 自动对焦 */
     private var mAutoFocusManager: AutoFocusManager? = null
     /**  */
     private var mFramingRect: Rect? = null
@@ -100,7 +100,7 @@ class CameraHelper {
 
     /** OCR解码 */
     fun requestOcrDecode(listener: OnCaptureListener) {
-        val callback = CaptureCallback(getCameraResolution(), listener)
+        val callback = CaptureCallback(getCameraResolution(), getScreenResolution(), listener)
         if (mCamera != null && isPreviewing) {
             mCamera?.setOneShotPreviewCallback(callback)
         }
