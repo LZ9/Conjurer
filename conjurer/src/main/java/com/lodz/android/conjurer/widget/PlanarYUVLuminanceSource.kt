@@ -13,14 +13,14 @@ import android.graphics.Bitmap
  * The code for this class was adapted from the ZXing project: http://code.google.com/p/zxing
  */
 class PlanarYUVLuminanceSource(
-    private val yuvData: ByteArray,
-    private val dataWidth: Int,
-    private val dataHeight: Int,
-    private val left: Int,
-    private val top: Int,
-    width: Int,
-    height: Int,
-    reverseHorizontal: Boolean = false
+    private val yuvData: ByteArray,//传入的帧数据
+    private val dataWidth: Int, //数据源图片宽度
+    private val dataHeight: Int,//数据源图片高度
+    private val left: Int,//识别区域的左边距
+    private val top: Int,//识别区域的上边距
+    width: Int,//识别区域的宽度
+    height: Int,//识别区域的高度
+    reverseHorizontal: Boolean = false//是否需要旋转图片
 ) : LuminanceSource(width, height) {
 
     init {
