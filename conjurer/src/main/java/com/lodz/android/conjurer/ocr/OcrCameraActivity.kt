@@ -4,6 +4,7 @@ import android.app.ProgressDialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.SurfaceHolder
 import android.view.View
 import android.view.Window
@@ -20,6 +21,7 @@ import com.lodz.android.conjurer.data.event.OcrEvent
 import com.lodz.android.conjurer.databinding.CjActivityOcrCameraBinding
 import com.lodz.android.conjurer.ocr.recog.OcrRecognizeManager
 import com.lodz.android.conjurer.ocr.recog.OnRecognizeListener
+import kotlinx.coroutines.*
 import org.greenrobot.eventbus.EventBus
 
 /**
@@ -49,8 +51,14 @@ class OcrCameraActivity : AppCompatActivity() {
     private var mCameraHelper: CameraHelper = CameraHelper()
     /** 识别封装类  */
     private var mOcrRecognizeManager: OcrRecognizeManager = OcrRecognizeManager.create()
-
+    /** 加载框  */
     private var mPgDialog: ProgressDialog? = null
+    /** 是否实时预览  */
+    private var isPreviewing = false
+    /** OCR识别结果  */
+    private var mOcrResultBean: OcrResultBean? = null
+    /** 是否释放资源  */
+    private var isRelease = false
 
     private val mSurfaceHolderCallback = object :SurfaceHolder.Callback{
         override fun surfaceCreated(holder: SurfaceHolder) {
@@ -81,6 +89,7 @@ class OcrCameraActivity : AppCompatActivity() {
         initPgDialog()
 
         mSurfaceHolder = mBinding.surfaceView.holder
+        isPreviewing = requestBean.isRealTimePreview
 
         mBinding.shutterBtn.setOnShutterButtonListener(object :ShutterButton.OnShutterButtonListener{
             override fun onActionDownFocus(btn: ShutterButton, pressed: Boolean) {
@@ -88,29 +97,55 @@ class OcrCameraActivity : AppCompatActivity() {
             }
 
             override fun onActionUpClick(btn: ShutterButton) {
-                mOcrRecognizeManager.ocrCameraDecode()
+                if (!isPreviewing){
+                    mOcrRecognizeManager.ocrCameraDecode()
+                    return
+                }
+                val resultBean = mOcrResultBean
+                if (resultBean == null || resultBean.text.isEmpty()){
+                    toastShort(getString(R.string.cj_app_ocr_decode_fail))
+                    return
+                }
+                showResultUI(resultBean)
             }
         })
 
-        mBinding.previewTogbtn.setOnCheckedChangeListener { buttonView, isChecked ->
-            toastShort("previewTogbtn isChecked : $isChecked")
-        }
-
         mBinding.viewfinderLayout.setOnViewfinderChangeListener {
+            if (isPreviewing && mOcrResultBean == null) {//如果是实时预览，且没有结果数据，说明是第一次请求则响应
+                Log.d("testtag", "isPreviewing && mOcrResultBean == null")
+                mOcrRecognizeManager.ocrCameraDecode(it)
+                return@setOnViewfinderChangeListener
+            }
             mOcrRecognizeManager.setRecogRect(it)
         }
         mOcrRecognizeManager.init(mCameraHelper, requestBean)
-        mOcrRecognizeManager.setOnRecognizeListener(object :OnRecognizeListener{
+        mOcrRecognizeManager.setOnRecognizeListener(object : OnRecognizeListener {
             override fun onOcrDecodeStart() {
-                mPgDialog?.show()
+                if (!isPreviewing){
+                    mPgDialog?.show()
+                }
             }
 
             override fun onOcrDecodeResult(resultBean: OcrResultBean) {
-                showResultUI(resultBean)
+                if (isRelease){
+                    return
+                }
+                mOcrResultBean = resultBean
+                if (!isPreviewing){
+                    showResultUI(resultBean)
+                    return
+                }
+                if (mBinding.resultLayout.visibility == View.VISIBLE){
+                    return
+                }
+                showStandardUI()
+                mOcrRecognizeManager.ocrCameraDecode()
             }
 
             override fun onOcrDecodeEnd() {
-                mPgDialog?.dismiss()
+                if (!isPreviewing){
+                    mPgDialog?.dismiss()
+                }
             }
         })
         showStandardUI()
@@ -128,14 +163,13 @@ class OcrCameraActivity : AppCompatActivity() {
     private fun showStandardUI() {
         mBinding.resultLayout.visibility = View.GONE
         mBinding.resultTv.text = ""
-        mBinding.previewLayout.visibility = View.GONE
-        mBinding.previewStatusTv.text = ""
-        mBinding.previewResultTv.text = ""
+        mBinding.previewLayout.visibility = if (isPreviewing) View.VISIBLE else View.GONE
+        mBinding.previewStatusTv.text = if (isPreviewing) getPreviewStatusStr(mOcrResultBean) else ""
+        mBinding.previewResultTv.text = if (isPreviewing) mOcrResultBean?.text ?: "" else ""
         mBinding.viewfinderLayout.visibility = View.VISIBLE
-//        mBinding.viewfinderLayout.drawViewfinder()
+        mBinding.viewfinderLayout.setOcrResultBean(mOcrResultBean)
+        mBinding.viewfinderLayout.drawViewfinder()
         mBinding.shutterBtn.visibility = View.VISIBLE
-//        mBinding.viewfinderLayout.removeResultText()
-        mBinding.previewTogbtn.visibility = View.VISIBLE
     }
 
     /** 显示结果UI */
@@ -144,7 +178,6 @@ class OcrCameraActivity : AppCompatActivity() {
         mBinding.shutterBtn.visibility = View.GONE
         mBinding.previewLayout.visibility = View.GONE
         mBinding.viewfinderLayout.visibility = View.GONE
-        mBinding.previewTogbtn.visibility = View.GONE
 
         if (bean.text.isEmpty()){
             toastShort(getString(R.string.cj_app_ocr_decode_fail))
@@ -164,6 +197,16 @@ class OcrCameraActivity : AppCompatActivity() {
             }
         }
         mBinding.resultTv.text = text
+    }
+
+    private fun getPreviewStatusStr(resultBean: OcrResultBean?): String {
+        if (resultBean == null){
+            return "识别状态：等待OCR识别"
+        }
+        if (resultBean.text.isEmpty()){
+            return "识别状态：无识别结果，请调整识别框包裹文字"
+        }
+        return "识别状态：识别完成，平均置信值：${resultBean.meanConfidence}，耗时：${resultBean.recognitionTimeRequired}毫秒"
     }
 
     /** 初始化相机 */
@@ -191,13 +234,27 @@ class OcrCameraActivity : AppCompatActivity() {
         mSurfaceHolder?.removeCallback(mSurfaceHolderCallback)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        mOcrRecognizeManager.release()
+    override fun finish() {
+        if (isRelease){
+            return
+        }
+        MainScope().launch {
+            isRelease = true
+            mBinding.shutterBtn.isClickable = false
+            toastShort(getString(R.string.cj_app_ocr_release))
+            withContext(Dispatchers.IO){
+                delay(1000)//实时识别存在异步操作，通过延迟结束所有异步操作，再关闭避免抛出异常
+            }
+            isPreviewing = false
+            mOcrRecognizeManager.end()
+            mOcrRecognizeManager.release()
+            super.finish()
+        }
     }
 
     override fun onBackPressed() {
         if (mBinding.resultLayout.visibility == View.VISIBLE) {
+            mOcrResultBean = null
             showStandardUI()
             return
         }

@@ -75,9 +75,9 @@ public final class ViewfinderView extends View {
         // Initialize these once for performance rather than calling them every time in onDraw().
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         Resources resources = getResources();
-        maskColor = resources.getColor(R.color.viewfinder_mask);
-        frameColor = resources.getColor(R.color.viewfinder_frame);
-        cornerColor = resources.getColor(R.color.viewfinder_corners);
+        maskColor = resources.getColor(R.color.cj_color_60000000);
+        frameColor = resources.getColor(R.color.cj_color_d6d6d6);
+        cornerColor = resources.getColor(R.color.cj_color_ffffff);
 
         //    bounds = new Rect();
         previewFrame = new Rect();

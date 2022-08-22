@@ -19,7 +19,7 @@
         android:id="@+id/result_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/result_view"
+        android:background="@color/cj_color_b0000000"
         android:gravity="center"
         android:orientation="horizontal"
         android:padding="12dp"
@@ -44,8 +44,8 @@
                 android:id="@+id/result_tv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/result_text"
-                android:textColorLink="@color/result_text"
+                android:textColor="@color/cj_color_ffffff"
+                android:textColorLink="@color/cj_color_ffffff"
                 android:textSize="18sp" />
 
         </ScrollView>
@@ -76,7 +76,7 @@
             android:layout_gravity="start|bottom"
             android:background="#0000"
             android:text=""
-            android:textColor="@color/status_text"
+            android:textColor="@color/cj_color_ffffff"
             android:textSize="14sp" />
 
     </FrameLayout>

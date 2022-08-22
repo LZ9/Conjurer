@@ -100,6 +100,11 @@ class ViewfinderLayout : View {
         mOcrResultBean = bean
     }
 
+    /** 绘制取景器 */
+    fun drawViewfinder() {
+        invalidate()
+    }
+
     /** 设置监听器[listener] */
     fun setOnViewfinderChangeListener(listener: OnViewfinderChangeListener?) {
         mListener = listener
@@ -121,6 +126,175 @@ class ViewfinderLayout : View {
         drawMask(canvas, rect)//绘制遮罩层
         drawFrame(canvas, rect)//绘制边框
         drawCorner(canvas, rect)//绘制边角
+
+        val resultBean = mOcrResultBean
+        if (resultBean != null) {
+            val bitmapSize= resultBean.getBitmapDimensions()
+
+//            Log.d("testtag", "bitmapSize width : ${bitmapSize?.x}")
+//            Log.d("testtag", "rect width : ${rect.width()}")
+//            Log.i("testtag", "bitmapSize height : ${bitmapSize?.y}")
+//            Log.i("testtag", "rect height : ${rect.height()}")
+
+
+        }
+
+
+
+        //  // If we have an OCR result, overlay its information on the viewfinder.
+        //        if (resultBean != null) {
+        //
+        //            // Only draw text/bounding boxes on viewfinder if it hasn't been resized since the OCR was requested.
+        //            Point bitmapSize = resultBean.getBitmapDimensions();
+        //            previewFrame = mCameraHelper.getFramingRectInPreview();
+        //            if (bitmapSize.x == previewFrame.width() && bitmapSize.y == previewFrame.height()) {
+        //
+        //
+        //                float scaleX = frame.width() / (float) previewFrame.width();
+        //                float scaleY = frame.height() / (float) previewFrame.height();
+        //
+        //                if (DRAW_REGION_BOXES) {
+        //                    regionBoundingBoxes = resultBean.regionBoundingBoxes;
+        //                    for (int i = 0; i < regionBoundingBoxes.size(); i++) {
+        //                        paint.setAlpha(0xA0);
+        //                        paint.setColor(Color.MAGENTA);
+        //                        paint.setStyle(Style.STROKE);
+        //                        paint.setStrokeWidth(1);
+        //                        rect = regionBoundingBoxes.get(i);
+        //                        canvas.drawRect(frame.left + rect.left * scaleX,
+        //                                frame.top + rect.top * scaleY,
+        //                                frame.left + rect.right * scaleX,
+        //                                frame.top + rect.bottom * scaleY, paint);
+        //                    }
+        //                }
+        //
+        //                if (DRAW_TEXTLINE_BOXES) {
+        //                    // Draw each textline
+        //                    textlineBoundingBoxes = resultBean.textlineBoundingBoxes;
+        //                    paint.setAlpha(0xA0);
+        //                    paint.setColor(Color.RED);
+        //                    paint.setStyle(Style.STROKE);
+        //                    paint.setStrokeWidth(1);
+        //                    for (int i = 0; i < textlineBoundingBoxes.size(); i++) {
+        //                        rect = textlineBoundingBoxes.get(i);
+        //                        canvas.drawRect(frame.left + rect.left * scaleX,
+        //                                frame.top + rect.top * scaleY,
+        //                                frame.left + rect.right * scaleX,
+        //                                frame.top + rect.bottom * scaleY, paint);
+        //                    }
+        //                }
+        //
+        //                if (DRAW_STRIP_BOXES) {
+        //                    stripBoundingBoxes = resultBean.stripBoundingBoxes;
+        //                    paint.setAlpha(0xFF);
+        //                    paint.setColor(Color.YELLOW);
+        //                    paint.setStyle(Style.STROKE);
+        //                    paint.setStrokeWidth(1);
+        //                    for (int i = 0; i < stripBoundingBoxes.size(); i++) {
+        //                        rect = stripBoundingBoxes.get(i);
+        //                        canvas.drawRect(frame.left + rect.left * scaleX,
+        //                                frame.top + rect.top * scaleY,
+        //                                frame.left + rect.right * scaleX,
+        //                                frame.top + rect.bottom * scaleY, paint);
+        //                    }
+        //                }
+        //
+        //                if (DRAW_WORD_BOXES || DRAW_WORD_TEXT) {
+        //                    // Split the text into words
+        //                    wordBoundingBoxes = resultBean.wordBoundingBoxes;
+        //                    //      for (String w : words) {
+        //                    //        Log.e("ViewfinderView", "word: " + w);
+        //                    //      }
+        //                    //Log.d("ViewfinderView", "There are " + words.length + " words in the string array.");
+        //                    //Log.d("ViewfinderView", "There are " + wordBoundingBoxes.size() + " words with bounding boxes.");
+        //                }
+        //
+        //                if (DRAW_WORD_BOXES) {
+        //                    paint.setAlpha(0xFF);
+        //                    paint.setColor(0xFF00CCFF);
+        //                    paint.setStyle(Style.STROKE);
+        //                    paint.setStrokeWidth(1);
+        //                    for (int i = 0; i < wordBoundingBoxes.size(); i++) {
+        //                        // Draw a bounding box around the word
+        //                        rect = wordBoundingBoxes.get(i);
+        //                        canvas.drawRect(
+        //                                frame.left + rect.left * scaleX,
+        //                                frame.top + rect.top * scaleY,
+        //                                frame.left + rect.right * scaleX,
+        //                                frame.top + rect.bottom * scaleY, paint);
+        //                    }
+        //                }
+        //
+        //                if (DRAW_WORD_TEXT) {
+        //                    words = resultBean.text.replace("\n"," ").split(" ");
+        //                    int[] wordConfidences = resultBean.wordConfidences;
+        //                    for (int i = 0; i < wordBoundingBoxes.size(); i++) {
+        //                        boolean isWordBlank = true;
+        //                        try {
+        //                            if (!words[i].equals("")) {
+        //                                isWordBlank = false;
+        //                            }
+        //                        } catch (ArrayIndexOutOfBoundsException e) {
+        //                            e.printStackTrace();
+        //                        }
+        //
+        //                        // Only draw if word has characters
+        //                        if (!isWordBlank) {
+        //                            // Draw a white background around each word
+        //                            rect = wordBoundingBoxes.get(i);
+        //                            paint.setColor(Color.WHITE);
+        //                            paint.setStyle(Style.FILL);
+        //                            if (DRAW_TRANSPARENT_WORD_BACKGROUNDS) {
+        //                                // Higher confidence = more opaque, less transparent background
+        //                                paint.setAlpha(wordConfidences[i] * 255 / 100);
+        //                            } else {
+        //                                paint.setAlpha(255);
+        //                            }
+        //                            canvas.drawRect(frame.left + rect.left * scaleX,
+        //                                    frame.top + rect.top * scaleY,
+        //                                    frame.left + rect.right * scaleX,
+        //                                    frame.top + rect.bottom * scaleY, paint);
+        //
+        //                            // Draw the word in black text
+        //                            paint.setColor(Color.BLACK);
+        //                            paint.setAlpha(0xFF);
+        //                            paint.setAntiAlias(true);
+        //                            paint.setTextAlign(Align.LEFT);
+        //
+        //                            // Adjust text size to fill rect
+        //                            paint.setTextSize(100);
+        //                            paint.setTextScaleX(1.0f);
+        //                            // ask the paint for the bounding rect if it were to draw this text
+        //                            Rect bounds = new Rect();
+        //                            paint.getTextBounds(words[i], 0, words[i].length(), bounds);
+        //                            // get the height that would have been produced
+        //                            int h = bounds.bottom - bounds.top;
+        //                            // figure out what textSize setting would create that height of text
+        //                            float size  = (((float)(rect.height())/h)*100f);
+        //                            // and set it into the paint
+        //                            paint.setTextSize(size);
+        //                            // Now set the scale.
+        //                            // do calculation with scale of 1.0 (no scale)
+        //                            paint.setTextScaleX(1.0f);
+        //                            // ask the paint for the bounding rect if it were to draw this text.
+        //                            paint.getTextBounds(words[i], 0, words[i].length(), bounds);
+        //                            // determine the width
+        //                            int w = bounds.right - bounds.left;
+        //                            // calculate the baseline to use so that the entire text is visible including the descenders
+        //                            int text_h = bounds.bottom-bounds.top;
+        //                            int baseline =bounds.bottom+((rect.height()-text_h)/2);
+        //                            // determine how much to scale the width to fit the view
+        //                            float xscale = ((float) (rect.width())) / w;
+        //                            // set the scale for the text paint
+        //                            paint.setTextScaleX(xscale);
+        //                            canvas.drawText(words[i], frame.left + rect.left * scaleX, frame.top + rect.bottom * scaleY - baseline, paint);
+        //                        }
+        //
+        //                    }
+        //                }
+        //            }
+        //
+        //        }
         mListener?.onRectChanged(rect)
     }
 

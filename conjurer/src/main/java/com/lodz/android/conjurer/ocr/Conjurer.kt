@@ -48,6 +48,8 @@ class Conjurer private constructor(){
     private var mListener: OnConjurerListener? = null
     /** 转换器列表 */
     private var mTransformerList: ArrayList<OcrResultTransformer> = arrayListOf()
+    /** 是否实时预览 */
+    private var isRealTimePreview = false
 
     /** OCR的API方法 */
     private var mTessApi: TessBaseAPI? = null
@@ -108,6 +110,12 @@ class Conjurer private constructor(){
         return this
     }
 
+    /** 设置是否实时预览[isPreview] */
+    fun setRealTimePreview(isPreview: Boolean): Conjurer {
+        isRealTimePreview = isPreview
+        return this
+    }
+
     /** 添加OCR识别结果转换器 */
     fun addOcrResultTransformer(vararg transformer: OcrResultTransformer): Conjurer {
         mTransformerList.addAll(transformer)
@@ -137,7 +145,7 @@ class Conjurer private constructor(){
                 return@launch
             }
             mListener?.onInit(InitStatus.COMPLETE)
-            OcrCameraActivity.start(context, OcrRequestBean(mDataPath, mLanguage, mEngineMode, mPageSegMode, mBlackList, mWhiteList, mTransformerList))
+            OcrCameraActivity.start(context, OcrRequestBean(mDataPath, mLanguage, mEngineMode, mPageSegMode, mBlackList, mWhiteList, isRealTimePreview, mTransformerList))
         }
     }
 

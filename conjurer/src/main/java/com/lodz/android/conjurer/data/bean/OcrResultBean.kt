@@ -21,39 +21,39 @@ class OcrResultBean {
     @JvmField
     var text: String = ""
 
-    /**  */
+    /** 单词置信值（0到100之间） */
     @JvmField
     var wordConfidences: IntArray? = null
 
-    /**  */
+    /** 平均置信值（0到100之间） */
     @JvmField
     var meanConfidence: Int = 0
 
-    /**  */
+    /** 区域边界框 */
     @JvmField
     var regionBoundingBoxes: MutableList<Rect>? = null
 
-    /**  */
+    /** 文本行框 */
     @JvmField
     var textlineBoundingBoxes: MutableList<Rect>? = null
 
-    /**  */
+    /** 文字框 */
     @JvmField
     var wordBoundingBoxes: MutableList<Rect>? = null
 
-    /**  */
+    /** 带状框 */
     @JvmField
     var stripBoundingBoxes: MutableList<Rect>? = null
 
-    /**  */
+    /** 字符边界框 */
     @JvmField
     var characterBoundingBoxes: MutableList<Rect>? = null
 
-    /**  */
+    /** 识别时长 */
     @JvmField
     var recognitionTimeRequired: Long = 0
 
-    /**  */
+    /** 本次识别时间 */
     @JvmField
     val timestamp: Long = System.currentTimeMillis()
 

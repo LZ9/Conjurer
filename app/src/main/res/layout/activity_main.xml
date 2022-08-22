@@ -7,24 +7,36 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:padding="10dp">
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/scan_btn"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="5dp"
-            android:layout_weight="1"
-            android:text="@string/main_scan_ocr" />
-
-        <com.google.android.material.button.MaterialButton
             android:id="@+id/clean_data_btn"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="5dp"
-            android:layout_weight="1"
             android:text="@string/main_clean_trained_data" />
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/scan_btn"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="5dp"
+                android:layout_weight="1"
+                android:text="@string/main_scan_ocr" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/realtime_btn"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:layout_weight="1"
+                android:text="@string/main_realtime_ocr" />
+        </LinearLayout>
 
     </LinearLayout>
 
@@ -48,6 +60,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
-        android:text="@string/main_clean_trained_data" />
+        android:text="@string/main_clean_log" />
 
 </LinearLayout>

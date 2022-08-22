@@ -15,5 +15,6 @@ class OcrRequestBean(
     val pageSegMode: Int,//页面分段模式
     val blackList: String,//黑名单
     val whiteList: String,//白名单
+    val isRealTimePreview: Boolean,//是否实时预览
     val transformerList: List<OcrResultTransformer>//识别结果转换器
 ) : Serializable

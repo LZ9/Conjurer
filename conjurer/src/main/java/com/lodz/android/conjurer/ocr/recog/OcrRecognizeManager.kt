@@ -58,16 +58,21 @@ class OcrRecognizeManager private constructor(){
     }
 
     /** OCR识别 */
-    fun ocrCameraDecode(rect: Rect? = mRecogRect) {
+    fun ocrCameraDecode(rect: Rect? = null) {
+        var recogRect = rect
         if (rect == null){
+            recogRect = mRecogRect
+        }
+        if (recogRect == null){
             mListener?.onOcrDecodeResult(OcrResultBean())
             return
         }
+        mRecogRect = recogRect
         mCameraHelper?.requestOcrDecode { cameraResolution, screenResolution, data ->
             MainScope().launch {
                 mListener?.onOcrDecodeStart()
                 withContext(Dispatchers.IO) {
-                    decode(createCameraGreyscaleBitmap(rect, cameraResolution, screenResolution, data))
+                    decode(createCameraGreyscaleBitmap(recogRect, cameraResolution, screenResolution, data))
                 }
                 mListener?.onOcrDecodeEnd()
             }
@@ -122,9 +127,6 @@ class OcrRecognizeManager private constructor(){
     }
 
     fun release() {
-        mBaseApi?.stop()
-        mBaseApi?.clear()
-        mBaseApi?.end()
         mBaseApi = null
     }
 
