@@ -1,11 +1,15 @@
 package com.lodz.android.conjurer.ocr
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.util.Base64
 import com.googlecode.tesseract.android.TessBaseAPI
 import com.lodz.android.conjurer.data.status.InitStatus
 import com.lodz.android.conjurer.data.event.OcrEvent
 import com.lodz.android.conjurer.data.bean.OcrRequestBean
 import com.lodz.android.conjurer.config.Constant
+import com.lodz.android.conjurer.ocr.recog.OcrRecognizeManager
 import com.lodz.android.conjurer.transformer.OcrResultTransformer
 import com.lodz.android.conjurer.util.OcrUtils
 import kotlinx.coroutines.*
@@ -48,9 +52,6 @@ class Conjurer private constructor(){
     private var mListener: OnConjurerListener? = null
     /** 转换器列表 */
     private var mTransformerList: ArrayList<OcrResultTransformer> = arrayListOf()
-
-    /** OCR的API方法 */
-    private var mTessApi: TessBaseAPI? = null
 
     /** 设置训练数据路径[path] */
     fun setDataPath(path: String): Conjurer {
@@ -114,6 +115,12 @@ class Conjurer private constructor(){
         return this
     }
 
+    /** 获取默认训练文件存储路径 */
+    fun getDefaultDataPath(context: Context): String {
+        checkPath(context)
+        return mDataPath + Constant.DEFAULT_TRAINEDDATA_DIR_NAME
+    }
+
     /** 删除目录中已经存在的训练数据，上下文[context] */
     fun deleteTessdataDir(context: Context) : Conjurer {
         checkPath(context)
@@ -141,8 +148,23 @@ class Conjurer private constructor(){
         }
     }
 
-    /** 异步识别，上下文[context]，图片的[base64] */
-    fun recogAsync(context: Context, base64: String) {
+    /** Base64转Bitmap */
+    private fun base64ToBitmap(base64: String, flags: Int = Base64.NO_WRAP): Bitmap? {
+        val bytes = Base64.decode(base64, flags)
+        return BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+    }
+
+    /** 异步识别，上下文[context]，图片[base64] */
+    fun recogAsync(context: Context, base64: String, flags: Int = Base64.NO_WRAP) {
+        val bitmap = base64ToBitmap(base64, flags)
+        if (bitmap == null){
+            mListener?.onError(Constant.TYPE_EVENT_ERROR_CAN_NOT_CREATE_BITMAP, NullPointerException("couldn't create bitmap by base64"), "无法创建Bitmap")
+            return
+        }
+        recogAsync(context, bitmap)
+    }
+    /** 异步识别，上下文[context]，图片的[bitmap] */
+    fun recogAsync(context: Context, bitmap: Bitmap) {
         MainScope().launch {
             var isCheckSuccess: Boolean
             withContext(Dispatchers.IO) {
@@ -151,26 +173,31 @@ class Conjurer private constructor(){
             if (!isCheckSuccess){
                 return@launch
             }
-            //完成本地训练文件校验
-            if (mTessApi == null) {
-                mTessApi = TessBaseAPI()
-                val isSuccess = mTessApi?.init(mDataPath, mLanguage, mEngineMode) ?: false
-                if (!isSuccess){
-                    mListener?.onError(
-                        Constant.TYPE_EVENT_ERROR_OCR_INIT_FAIL,
-                        IllegalArgumentException("TessApi init fail"),
-                        "OCR初始化失败"
-                    )
-                    return@launch
-                }
-            }
-            mTessApi?.pageSegMode = mPageSegMode
-            mTessApi?.setVariable(TessBaseAPI.VAR_CHAR_BLACKLIST, mBlackList)//黑名单
-            mTessApi?.setVariable(TessBaseAPI.VAR_CHAR_WHITELIST, mWhiteList)//白名单
-            mListener?.onInit(InitStatus.COMPLETE)
-            if (base64.isEmpty()){
-                return@launch
-            }
+
+            val requestBean = OcrRequestBean(mDataPath, mLanguage, mEngineMode, mPageSegMode, mBlackList, mWhiteList, mTransformerList)
+            val manager = OcrRecognizeManager.create()
+            manager.init(requestBean)
+
+//            //完成本地训练文件校验
+//            if (mTessApi == null) {
+//                mTessApi = TessBaseAPI()
+//                val isSuccess = mTessApi?.init(mDataPath, mLanguage, mEngineMode) ?: false
+//                if (!isSuccess){
+//                    mListener?.onError(
+//                        Constant.TYPE_EVENT_ERROR_OCR_INIT_FAIL,
+//                        IllegalArgumentException("TessApi init fail"),
+//                        "OCR初始化失败"
+//                    )
+//                    return@launch
+//                }
+//            }
+//            mTessApi?.pageSegMode = mPageSegMode
+//            mTessApi?.setVariable(TessBaseAPI.VAR_CHAR_BLACKLIST, mBlackList)//黑名单
+//            mTessApi?.setVariable(TessBaseAPI.VAR_CHAR_WHITELIST, mWhiteList)//白名单
+//            mListener?.onInit(InitStatus.COMPLETE)
+//            if (base64.isEmpty()){
+//                return@launch
+//            }
             // TODO: 2022/8/10 异步识别
         }
     }
@@ -227,6 +254,9 @@ class Conjurer private constructor(){
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onOcrEvent(event: OcrEvent) {
         EventBus.getDefault().unregister(this)
+        if (event.isFinish()){
+            return
+        }
         if (event.isSuccess() && event.bean != null) {
             mListener?.onOcrResult(event.bean.text)
             return

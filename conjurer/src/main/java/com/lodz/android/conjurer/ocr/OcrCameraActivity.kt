@@ -209,6 +209,7 @@ class OcrCameraActivity : AppCompatActivity() {
             showStandardUI()
             return
         }
+        sendFinishEvent()
         super.onBackPressed()
     }
 
@@ -220,6 +221,11 @@ class OcrCameraActivity : AppCompatActivity() {
     /** 发送成功事件 */
     private fun sendSuccessEvent(bean: OcrResultBean?) {
         EventBus.getDefault().post(OcrEvent(Constant.TYPE_EVENT_SUCCESS, bean, null, "识别成功"))
+    }
+
+    /** 发送页面关闭事件 */
+    private fun sendFinishEvent() {
+        EventBus.getDefault().post(OcrEvent(Constant.TYPE_EVENT_FINISH, null, null, "取消识别"))
     }
 
     /** 弹出提示语 */

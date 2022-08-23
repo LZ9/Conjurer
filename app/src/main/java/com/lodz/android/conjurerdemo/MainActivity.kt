@@ -70,10 +70,12 @@ class MainActivity : BaseActivity() {
 
         mBinding.asynRecogBtn.setOnClickListener {
 
+
         }
 
         mBinding.cleanDataBtn.setOnClickListener {
             Conjurer.create().deleteTessdataDir(getContext())
+            toastShort(R.string.main_clean_trained_data_ok)
         }
 
         mBinding.cleanLogBtn.setOnClickListener {
@@ -95,6 +97,7 @@ class MainActivity : BaseActivity() {
     }
 
     private fun init() {
+        mBinding.dataPathTv.text = getString(R.string.main_data_path, Conjurer.create().getDefaultDataPath(getContext()))
         showStatusCompleted()
     }
 

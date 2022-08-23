@@ -6,9 +6,11 @@
     <string name="main_check_permission_confirm">已确认</string>
     <string name="main_check_permission_unconfirmed">再次确认</string>
     <string name="main_check_permission_cancel">请在设置中打开权限后重启应用</string>
-    <string name="main_scan_sfz_ocr">OCR身份证拍照识别</string>
-    <string name="main_asyn_recog">异步图片识别</string>
+    <string name="main_scan_sfzh_ocr">OCR身份证号拍照识别</string>
+    <string name="main_asyn_recog_sfzh">异步识别身份证号图片</string>
     <string name="main_clean_trained_data">清空训练数据</string>
+    <string name="main_clean_trained_data_ok">已清空</string>
     <string name="main_clean_log">清空日志</string>
+    <string name="main_data_path">训练文件默认路径：%s</string>
 
 </resources>

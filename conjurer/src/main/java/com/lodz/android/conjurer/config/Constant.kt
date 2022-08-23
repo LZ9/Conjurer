@@ -38,17 +38,20 @@ object Constant {
 
     /** 识别成功 */
     const val TYPE_EVENT_SUCCESS = 0
+    /** 关闭页面 */
+    const val TYPE_EVENT_FINISH = 1
     /** 相机打开失败 */
-    const val TYPE_EVENT_ERROR_CAMERA_OPEN_FAIL = 1
+    const val TYPE_EVENT_ERROR_CAMERA_OPEN_FAIL = 2
     /** 训练数据存放目录创建失败 */
-    const val TYPE_EVENT_ERROR_DIR_CREATE_FAIL = 2
+    const val TYPE_EVENT_ERROR_DIR_CREATE_FAIL = 3
     /** 训练文件安装失败 */
-    const val TYPE_EVENT_ERROR_TRAINED_DATA_INSTALL_FAIL = 3
+    const val TYPE_EVENT_ERROR_TRAINED_DATA_INSTALL_FAIL = 4
     /** OCR初始化失败 */
-    const val TYPE_EVENT_ERROR_OCR_INIT_FAIL = 4
+    const val TYPE_EVENT_ERROR_OCR_INIT_FAIL = 5
     /** 请求参数为空 */
-    const val TYPE_EVENT_ERROR_REQUEST_PARAM_NULL = 5
-
+    const val TYPE_EVENT_ERROR_REQUEST_PARAM_NULL = 6
+    /** 无法创建Bitmap */
+    const val TYPE_EVENT_ERROR_CAN_NOT_CREATE_BITMAP = 7
 
 
 }

@@ -15,4 +15,6 @@ open class OcrEvent(
     val msg: String//提示语
 ) {
     fun isSuccess() = type == Constant.TYPE_EVENT_SUCCESS
+
+    fun isFinish() = type == Constant.TYPE_EVENT_FINISH
 }

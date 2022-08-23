@@ -10,16 +10,24 @@
         android:orientation="vertical"
         android:padding="10dp">
 
+        <TextView
+            android:id="@+id/data_path_tv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/main_data_path"
+            android:textSize="14sp" />
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/clean_data_btn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/main_clean_trained_data" />
+            android:text="@string/main_clean_trained_data"
+            android:textSize="12sp" />
 
         <LinearLayout
-            android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/scan_sfz_btn"
@@ -27,7 +35,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="5dp"
                 android:layout_weight="1"
-                android:text="@string/main_scan_sfz_ocr" />
+                android:text="@string/main_scan_sfzh_ocr"
+                android:textSize="12sp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/asyn_recog_btn"
@@ -35,7 +44,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="5dp"
                 android:layout_weight="1"
-                android:text="@string/main_asyn_recog" />
+                android:text="@string/main_asyn_recog_sfzh"
+                android:textSize="12sp" />
         </LinearLayout>
 
     </LinearLayout>
@@ -51,7 +61,7 @@
             android:id="@+id/result_tv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp" />
+            android:textSize="14sp" />
 
     </androidx.core.widget.NestedScrollView>
 
@@ -60,6 +70,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
-        android:text="@string/main_clean_log" />
+        android:text="@string/main_clean_log"
+        android:textSize="12sp" />
 
 </LinearLayout>
