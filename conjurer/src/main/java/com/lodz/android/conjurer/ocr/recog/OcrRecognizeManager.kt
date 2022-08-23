@@ -26,7 +26,6 @@ class OcrRecognizeManager private constructor(){
         fun create() = OcrRecognizeManager()
     }
 
-    private var mCameraHelper: CameraHelper? = null
     /** OCR封装类 */
     private var mBaseApi: TessBaseAPI? = null
     /** 监听器 */
@@ -35,8 +34,7 @@ class OcrRecognizeManager private constructor(){
     private var mRecogRect: Rect? = null
 
     /** 初始化 */
-    fun init(cameraHelper: CameraHelper, requestBean: OcrRequestBean) {
-        mCameraHelper = cameraHelper
+    fun init(requestBean: OcrRequestBean) {
         if (mBaseApi != null) {
             release()
         }
@@ -58,21 +56,17 @@ class OcrRecognizeManager private constructor(){
     }
 
     /** OCR识别 */
-    fun ocrCameraDecode(rect: Rect? = null) {
-        var recogRect = rect
+    fun ocrCameraDecode(cameraHelper: CameraHelper?) {
+        val rect = mRecogRect
         if (rect == null){
-            recogRect = mRecogRect
-        }
-        if (recogRect == null){
             mListener?.onOcrDecodeResult(OcrResultBean())
             return
         }
-        mRecogRect = recogRect
-        mCameraHelper?.requestOcrDecode { cameraResolution, screenResolution, data ->
+        cameraHelper?.requestOcrDecode { cameraResolution, screenResolution, data ->
             MainScope().launch {
                 mListener?.onOcrDecodeStart()
                 withContext(Dispatchers.IO) {
-                    decode(createCameraGreyscaleBitmap(recogRect, cameraResolution, screenResolution, data))
+                    decode(createCameraGreyscaleBitmap(rect, cameraResolution, screenResolution, data))
                 }
                 mListener?.onOcrDecodeEnd()
             }
@@ -127,6 +121,13 @@ class OcrRecognizeManager private constructor(){
     }
 
     fun release() {
+        try {
+            end()
+            clear()
+            stop()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
         mBaseApi = null
     }
 

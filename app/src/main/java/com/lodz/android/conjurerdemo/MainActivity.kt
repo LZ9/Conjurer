@@ -44,12 +44,32 @@ class MainActivity : BaseActivity() {
     override fun setListeners() {
         super.setListeners()
 
-        mBinding.scanBtn.setOnClickListener {
-            openConjurer(false)
+        mBinding.scanSfzBtn.setOnClickListener {
+            Conjurer.create()
+                .setLanguage(Constant.DEFAULT_LANGUAGE)
+                .setEngineMode(TessBaseAPI.OEM_TESSERACT_ONLY)
+                .setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO_OSD)
+                .setBlackList("")
+                .setWhiteList("Xx0123456789")
+                .addOcrResultTransformer(SfzhTransformer())
+                .setOnConjurerListener(object : OnConjurerListener {
+                    override fun onInit(status: InitStatus) {
+                        addLog("${Thread.currentThread().name} onInit : ${status.msg}")
+                    }
+
+                    override fun onOcrResult(text: String) {
+                        addLog("${Thread.currentThread().name} onOcrResult : $text")
+                    }
+
+                    override fun onError(type: Int, t: Throwable, msg: String) {
+                        addLog("${Thread.currentThread().name} onError : $type , ${t.message} , $msg")
+                    }
+                })
+                .openCamera(this)
         }
 
-        mBinding.realtimeBtn.setOnClickListener {
-            openConjurer(true)
+        mBinding.asynRecogBtn.setOnClickListener {
+
         }
 
         mBinding.cleanDataBtn.setOnClickListener {
@@ -59,31 +79,6 @@ class MainActivity : BaseActivity() {
         mBinding.cleanLogBtn.setOnClickListener {
             mBinding.resultTv.text = ""
         }
-    }
-
-    private fun openConjurer(isRealTimePreview: Boolean) {
-        Conjurer.create()
-            .setLanguage(Constant.DEFAULT_LANGUAGE)
-            .setEngineMode(TessBaseAPI.OEM_TESSERACT_ONLY)
-            .setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO_OSD)
-            .setRealTimePreview(isRealTimePreview)
-            .setBlackList("")
-            .setWhiteList("Xx0123456789")
-            .addOcrResultTransformer(SfzhTransformer())
-            .setOnConjurerListener(object : OnConjurerListener {
-                override fun onInit(status: InitStatus) {
-                    addLog("${Thread.currentThread().name} onInit : ${status.msg}")
-                }
-
-                override fun onOcrResult(text: String) {
-                    addLog("${Thread.currentThread().name} onOcrResult : $text")
-                }
-
-                override fun onError(type: Int, t: Throwable, msg: String) {
-                    addLog("${Thread.currentThread().name} onError : $type , ${t.message} , $msg")
-                }
-            })
-            .openCamera(this)
     }
 
     private fun addLog(log: String) {

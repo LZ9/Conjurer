@@ -22,20 +22,20 @@
             android:layout_height="wrap_content">
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/scan_btn"
+                android:id="@+id/scan_sfz_btn"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="5dp"
                 android:layout_weight="1"
-                android:text="@string/main_scan_ocr" />
+                android:text="@string/main_scan_sfz_ocr" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/realtime_btn"
+                android:id="@+id/asyn_recog_btn"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="5dp"
                 android:layout_weight="1"
-                android:text="@string/main_realtime_ocr" />
+                android:text="@string/main_asyn_recog" />
         </LinearLayout>
 
     </LinearLayout>

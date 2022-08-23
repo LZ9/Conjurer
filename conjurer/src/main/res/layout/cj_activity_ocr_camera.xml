@@ -13,80 +13,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!--  识别结果展示  -->
-    <LinearLayout
-        android:id="@+id/result_layout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/cj_color_b0000000"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:padding="12dp"
-        android:visibility="gone">
-
-        <ImageView
-            android:id="@+id/result_img"
-            android:layout_width="160dp"
-            android:layout_height="wrap_content"
-            android:adjustViewBounds="true"
-            android:contentDescription="@string/cj_app_img_name"
-            android:maxWidth="160dp"
-            android:maxHeight="160dp"
-            android:scaleType="centerInside" />
-
-        <ScrollView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="15dp">
-
-            <TextView
-                android:id="@+id/result_tv"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/cj_color_ffffff"
-                android:textColorLink="@color/cj_color_ffffff"
-                android:textSize="18sp" />
-
-        </ScrollView>
-
-    </LinearLayout>
-
-    <FrameLayout
-        android:id="@+id/preview_layout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <!--    实时预览识别结果    -->
-        <androidx.core.widget.NestedScrollView
-            android:layout_width="200dp"
-            android:layout_height="250dp"
-            android:layout_gravity="start|top"
-            android:background="@color/cj_color_aaffffff">
-
-            <TextView
-                android:id="@+id/preview_result_tv"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:text=""
-                android:textColor="@color/cj_color_000000"
-                android:textSize="14sp" />
-
-        </androidx.core.widget.NestedScrollView>
-
-
-        <!--    实时预览状态信息    -->
-        <TextView
-            android:id="@+id/preview_status_tv"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start|bottom"
-            android:text=""
-            android:textColor="@color/cj_color_ffffff"
-            android:textSize="14sp" />
-
-    </FrameLayout>
-
     <com.lodz.android.conjurer.camera.ShutterButton
         android:id="@+id/shutter_btn"
         android:layout_width="70dp"
@@ -97,5 +23,79 @@
         android:focusable="true"
         android:gravity="center_vertical"
         android:src="@drawable/shutter_button" />
+
+    <!--  识别结果展示  -->
+    <LinearLayout
+        android:id="@+id/result_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/cj_color_b0000000"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="12dp">
+
+            <ImageView
+                android:id="@+id/result_img"
+                android:layout_width="160dp"
+                android:layout_height="wrap_content"
+                android:adjustViewBounds="true"
+                android:contentDescription="@string/cj_app_img_name"
+                android:maxWidth="160dp"
+                android:maxHeight="160dp"
+                android:scaleType="centerInside" />
+
+            <ScrollView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp">
+
+                <TextView
+                    android:id="@+id/result_tv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/cj_color_ffffff"
+                    android:textColorLink="@color/cj_color_ffffff"
+                    android:textSize="18sp" />
+
+            </ScrollView>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="200dp"
+            android:layout_height="30dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/confirm_btn"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginEnd="10dp"
+                android:layout_weight="1"
+                android:background="@drawable/selector_btn_ocr_result"
+                android:gravity="center"
+                android:text="@string/cj_app_confirm" />
+
+            <TextView
+                android:id="@+id/cancel_btn"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:background="@drawable/selector_btn_ocr_result"
+                android:gravity="center"
+                android:text="@string/cj_app_cancel" />
+
+        </LinearLayout>
+
+    </LinearLayout>
 
 </FrameLayout>

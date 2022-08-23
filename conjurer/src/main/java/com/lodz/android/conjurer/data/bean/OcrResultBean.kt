@@ -51,7 +51,7 @@ class OcrResultBean {
 
     /** 识别时长 */
     @JvmField
-    var recognitionTimeRequired: Long = 0
+    var recognitionTimeRequired: Long = -1
 
     /** 本次识别时间 */
     @JvmField
