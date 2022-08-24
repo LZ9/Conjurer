@@ -18,23 +18,40 @@ android {
         enabled = true
     }
 
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
+    def FILE_AUTHORITY = "FILE_AUTHORITY"
+    defaultConfig {
+        buildConfigField "String", FILE_AUTHORITY, "\"com.lodz.android.conjurerdemo.fileprovider\""
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    
     kotlinOptions {
         jvmTarget = '1.8'
+    }
+
+    buildTypes {
+        debug {//debug版本的配置
+            minifyEnabled false // 是否进行混淆
+            zipAlignEnabled false // 是否支持zip
+            debuggable true // 是否支持调试
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            manifestPlaceholders = [FILE_AUTHORITY: defaultConfig.getBuildConfigFields().get("FILE_AUTHORITY").value.replace("\"", "")]
+        }
+
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            manifestPlaceholders = [FILE_AUTHORITY: defaultConfig.getBuildConfigFields().get("FILE_AUTHORITY").value.replace("\"", "")]
+        }
     }
 }
 
 dependencies {
     implementation 'ink.lodz:pandora:2.0.0'
+    implementation 'ink.lodz:imageloader-kt:1.2.1'
     // 权限申请
     implementation "com.github.permissions-dispatcher:ktx:1.1.4"
 

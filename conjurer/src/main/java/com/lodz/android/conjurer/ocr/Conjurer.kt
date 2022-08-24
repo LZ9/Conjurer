@@ -9,7 +9,9 @@ import com.lodz.android.conjurer.data.status.InitStatus
 import com.lodz.android.conjurer.data.event.OcrEvent
 import com.lodz.android.conjurer.data.bean.OcrRequestBean
 import com.lodz.android.conjurer.config.Constant
+import com.lodz.android.conjurer.data.bean.OcrResultBean
 import com.lodz.android.conjurer.ocr.recog.OcrRecognizeManager
+import com.lodz.android.conjurer.ocr.recog.OnRecognizeListener
 import com.lodz.android.conjurer.transformer.OcrResultTransformer
 import com.lodz.android.conjurer.util.OcrUtils
 import kotlinx.coroutines.*
@@ -177,28 +179,14 @@ class Conjurer private constructor(){
             val requestBean = OcrRequestBean(mDataPath, mLanguage, mEngineMode, mPageSegMode, mBlackList, mWhiteList, mTransformerList)
             val manager = OcrRecognizeManager.create()
             manager.init(requestBean)
-
-//            //完成本地训练文件校验
-//            if (mTessApi == null) {
-//                mTessApi = TessBaseAPI()
-//                val isSuccess = mTessApi?.init(mDataPath, mLanguage, mEngineMode) ?: false
-//                if (!isSuccess){
-//                    mListener?.onError(
-//                        Constant.TYPE_EVENT_ERROR_OCR_INIT_FAIL,
-//                        IllegalArgumentException("TessApi init fail"),
-//                        "OCR初始化失败"
-//                    )
-//                    return@launch
-//                }
-//            }
-//            mTessApi?.pageSegMode = mPageSegMode
-//            mTessApi?.setVariable(TessBaseAPI.VAR_CHAR_BLACKLIST, mBlackList)//黑名单
-//            mTessApi?.setVariable(TessBaseAPI.VAR_CHAR_WHITELIST, mWhiteList)//白名单
-//            mListener?.onInit(InitStatus.COMPLETE)
-//            if (base64.isEmpty()){
-//                return@launch
-//            }
-            // TODO: 2022/8/10 异步识别
+            manager.setOnRecognizeListener(object :OnRecognizeListener{
+                override fun onOcrDecodeStart() {}
+                override fun onOcrDecodeResult(resultBean: OcrResultBean) {
+                    mListener?.onOcrResult(resultBean)
+                }
+                override fun onOcrDecodeEnd() {}
+            })
+            manager.ocrPhotoDecode(bitmap)
         }
     }
 
@@ -258,7 +246,7 @@ class Conjurer private constructor(){
             return
         }
         if (event.isSuccess() && event.bean != null) {
-            mListener?.onOcrResult(event.bean.text)
+            mListener?.onOcrResult(event.bean)
             return
         }
         mListener?.onError(event.type, event.t ?: RuntimeException("orc fail"), event.msg)

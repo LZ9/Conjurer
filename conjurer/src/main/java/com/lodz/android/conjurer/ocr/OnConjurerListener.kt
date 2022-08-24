@@ -1,5 +1,6 @@
 package com.lodz.android.conjurer.ocr
 
+import com.lodz.android.conjurer.data.bean.OcrResultBean
 import com.lodz.android.conjurer.data.status.InitStatus
 
 /**
@@ -13,7 +14,7 @@ interface OnConjurerListener {
     fun onInit(status: InitStatus)
 
     /** 识别结果回调 */
-    fun onOcrResult(text: String)
+    fun onOcrResult(bean: OcrResultBean)
 
     /** 异常回调 */
     fun onError(type: Int, t: Throwable, msg: String)

@@ -73,11 +73,22 @@ class OcrRecognizeManager private constructor(){
         }
     }
 
+    /** OCR识别 */
+    fun ocrPhotoDecode(bitmap: Bitmap) {
+        MainScope().launch {
+            mListener?.onOcrDecodeStart()
+            withContext(Dispatchers.IO) {
+                decode(createGreyscaleBitmap(bitmap))
+            }
+            mListener?.onOcrDecodeEnd()
+        }
+    }
+
     /** 识别图片内文字 */
-    private suspend fun decode(greyscaleBitmap: Bitmap?) {
+    private suspend fun decode(bitmap: Bitmap?) {
         val bean = OcrResultBean()
         val startTime = System.currentTimeMillis()
-        bean.bitmap = greyscaleBitmap
+        bean.bitmap = bitmap
         try {
             mBaseApi?.setImage(ReadFile.readBitmap(bean.bitmap))
             bean.text = mBaseApi?.utF8Text ?: ""
@@ -107,7 +118,7 @@ class OcrRecognizeManager private constructor(){
         withContext(Dispatchers.Main) { mListener?.onOcrDecodeResult(bean) }
     }
 
-    /** 生成灰度位图 */
+    /** 用相机参数生成灰度位图 */
     private fun createCameraGreyscaleBitmap(rect: Rect, cameraResolution: Point, screenResolution: Point, data: ByteArray?): Bitmap? {
         if (data == null) {
             return null
@@ -119,6 +130,26 @@ class OcrRecognizeManager private constructor(){
         frameRect.bottom = frameRect.bottom * cameraResolution.y / screenResolution.y
         return PlanarYUVLuminanceSource(data, cameraResolution.x, cameraResolution.y, frameRect.left, frameRect.top, frameRect.width(), frameRect.height(), false).renderCroppedGreyscaleBitmap()
     }
+
+    /** 生成灰度位图 */
+    private fun createGreyscaleBitmap(bitmap: Bitmap): Bitmap {
+        val width = bitmap.width
+        val height = bitmap.height
+        val length = width * height
+        val newPx  = IntArray(length)
+        val oldPx = IntArray(length)
+        bitmap.getPixels(oldPx, 0, width, 0, 0, width, height)
+
+        for (i in 0 until length) {
+            val grey: Int = oldPx[i] and 0xff
+            newPx [i] = -0x1000000 or grey * 0x00010101
+        }
+
+        val bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        bmp.setPixels(newPx , 0, width, 0, 0, width, height)
+        return bmp
+    }
+
 
     fun release() {
         try {
