@@ -50,6 +50,14 @@
 
     </LinearLayout>
 
+    <ImageView
+        android:id="@+id/ocr_img"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:contentDescription="@string/app_name"
+        android:scaleType="centerInside"
+        android:visibility="gone" />
+
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -62,7 +70,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="14sp" />
-
     </androidx.core.widget.NestedScrollView>
 
     <com.google.android.material.button.MaterialButton

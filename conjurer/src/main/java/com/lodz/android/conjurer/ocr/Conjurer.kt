@@ -182,6 +182,11 @@ class Conjurer private constructor(){
             manager.setOnRecognizeListener(object :OnRecognizeListener{
                 override fun onOcrDecodeStart() {}
                 override fun onOcrDecodeResult(resultBean: OcrResultBean) {
+                    var text = resultBean.text
+                    for (transformer in requestBean.transformerList) {
+                        text = transformer.onResultTransformer(text)
+                    }
+                    resultBean.text = text
                     mListener?.onOcrResult(resultBean)
                 }
                 override fun onOcrDecodeEnd() {}

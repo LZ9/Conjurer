@@ -5,6 +5,7 @@ import android.graphics.*
 import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
+import com.lodz.android.conjurer.R
 
 /**
  * OCR识别结果数据体
@@ -58,7 +59,7 @@ class OcrResultBean {
     val timestamp: Long = System.currentTimeMillis()
 
     /** 对识别图片内文字画框，颜色为[color] */
-    fun getAnnotatedBitmap(context: Context, @ColorRes color: Int): Bitmap? = getAnnotatedBitmap(ContextCompat.getColor(context, color))
+    fun getAnnotatedBitmap(context: Context, @ColorRes color: Int = R.color.cj_color_00ccff): Bitmap? = getAnnotatedBitmap(ContextCompat.getColor(context, color))
 
     /** 对识别图片内文字画框，颜色为[color] */
     fun getAnnotatedBitmap(@ColorInt color: Int): Bitmap? {

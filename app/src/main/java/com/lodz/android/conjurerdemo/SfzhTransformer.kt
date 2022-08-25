@@ -22,20 +22,15 @@ class SfzhTransformer : OcrResultTransformer {
                 sfzList.add(str)
                 continue
             }
-            var isMatchFail = true
             val offset = str.length - 17
             for (i in 0 until offset) {
                 val section = str.substring(i, 18 + i)
                 if (IdCardUtils.validateIdCard(section)) {
                     sfzList.add(section)
-                    isMatchFail = false
                     break
                 }
             }
-            if (isMatchFail) {
-                sfzList.add(str)
-            }
         }
-        return OcrUtils.getStringBySeparator(sfzList, "\n")
+        return if (list.isEmpty()) "" else OcrUtils.getStringBySeparator(sfzList, "\n")
     }
 }

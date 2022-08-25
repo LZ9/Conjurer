@@ -12,15 +12,14 @@ import com.lodz.android.conjurer.data.bean.OcrResultBean
 import com.lodz.android.conjurer.ocr.Conjurer
 import com.lodz.android.conjurer.ocr.OnConjurerListener
 import com.lodz.android.conjurerdemo.databinding.ActivityMainBinding
-import com.lodz.android.corekt.anko.append
-import com.lodz.android.corekt.anko.goAppDetailSetting
-import com.lodz.android.corekt.anko.isPermissionGranted
-import com.lodz.android.corekt.anko.toastShort
+import com.lodz.android.corekt.anko.*
 import com.lodz.android.corekt.file.DocumentWrapper
 import com.lodz.android.corekt.utils.BitmapUtils
+import com.lodz.android.corekt.utils.DateUtils
 import com.lodz.android.imageloaderkt.ImageLoader
 import com.lodz.android.pandora.base.activity.BaseActivity
 import com.lodz.android.pandora.picker.file.PickerManager
+import com.lodz.android.pandora.utils.jackson.toJsonString
 import com.lodz.android.pandora.utils.viewbinding.bindingLayout
 import permissions.dispatcher.PermissionRequest
 import permissions.dispatcher.ktx.constructPermissionsRequest
@@ -78,19 +77,7 @@ class MainActivity : BaseActivity() {
                 .setBlackList("")
                 .setWhiteList("Xx0123456789")
                 .addOcrResultTransformer(SfzhTransformer())
-                .setOnConjurerListener(object : OnConjurerListener {
-                    override fun onInit(status: InitStatus) {
-                        addLog("${Thread.currentThread().name} onInit : ${status.msg}")
-                    }
-
-                    override fun onOcrResult(bean: OcrResultBean) {
-                        addLog("${Thread.currentThread().name} onOcrResult : ${bean.text}")
-                    }
-
-                    override fun onError(type: Int, t: Throwable, msg: String) {
-                        addLog("${Thread.currentThread().name} onError : $type , ${t.message} , $msg")
-                    }
-                })
+                .setOnConjurerListener(mOnConjurerListener)
                 .openCamera(getContext())
         }
 
@@ -145,23 +132,49 @@ class MainActivity : BaseActivity() {
             .setBlackList("")
             .setWhiteList("Xx0123456789")
             .addOcrResultTransformer(SfzhTransformer())
-            .setOnConjurerListener(object : OnConjurerListener {
-                override fun onInit(status: InitStatus) {
-                    addLog("${Thread.currentThread().name} onInit : ${status.msg}")
-                }
-                override fun onOcrResult(bean: OcrResultBean) {
-                    addLog("${Thread.currentThread().name} onOcrResult : ${bean.text}")
-                }
-                override fun onError(type: Int, t: Throwable, msg: String) {
-                    addLog("${Thread.currentThread().name} onError : $type , ${t.message} , $msg")
-                }
-            })
+            .setOnConjurerListener(mOnConjurerListener)
             .recogAsync(getContext(), bitmap)
 
     }
 
+    /** 监听器 */
+    private val mOnConjurerListener = object :OnConjurerListener{
+        override fun onInit(status: InitStatus) {
+            addLog(status.msg)
+        }
+
+        override fun onOcrResult(bean: OcrResultBean) {
+            showOcrBitmap(bean)
+            val resultText = if (bean.text.isEmpty()) {
+                "未识别到指定信息"
+            } else {
+                "识别结果：${bean.text.getListBySeparator("\n").toJsonString()}"
+            }
+            addLog(resultText)
+        }
+
+        override fun onError(type: Int, t: Throwable, msg: String) {
+            addLog("错误类型 : $type , ${t.message} , $msg")
+        }
+    }
+
+    /** 显示OCR识别结果图 */
+    private fun showOcrBitmap(bean: OcrResultBean) {
+        if (bean.bitmap != null) {
+            mBinding.ocrImg.visibility = View.VISIBLE
+            mBinding.ocrImg.setImageBitmap(bean.getAnnotatedBitmap(getContext()))
+        } else {
+            mBinding.ocrImg.visibility = View.GONE
+        }
+    }
+
     private fun addLog(log: String) {
-        mBinding.resultTv.text = log.append("\n").append(mBinding.resultTv.text)
+        mBinding.resultTv.text =
+            DateUtils.getCurrentFormatString(DateUtils.TYPE_2)
+                .append("：")
+                .append(log)
+                .append("\n")
+                .append(mBinding.resultTv.text)
     }
 
     override fun initData() {

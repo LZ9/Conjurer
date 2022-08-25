@@ -119,6 +119,15 @@ class OcrCameraActivity : AppCompatActivity() {
                     toastShort(getString(R.string.cj_app_ocr_decode_fail))
                     return
                 }
+                var text = resultBean.text
+                for (transformer in requestBean.transformerList) {
+                    text = transformer.onResultTransformer(text)
+                }
+                resultBean.text = text
+                if (resultBean.text.isEmpty()){
+                    toastShort(getString(R.string.cj_app_ocr_content_fail))
+                    return
+                }
                 showResultUI(resultBean)
                 mOcrResultBean = resultBean
             }
@@ -156,22 +165,14 @@ class OcrCameraActivity : AppCompatActivity() {
         if (bean.text.isEmpty()){
             toastShort(getString(R.string.cj_app_ocr_decode_fail))
         }
-        val bitmap = bean.getAnnotatedBitmap(this, R.color.cj_color_00ccff)
+        val bitmap = bean.getAnnotatedBitmap(this)
         if (bitmap == null) {
             mBinding.resultImg.visibility = View.GONE
         } else {
             mBinding.resultImg.visibility = View.VISIBLE
             mBinding.resultImg.setImageBitmap(bitmap)
         }
-        var text = bean.text
-        val requestBean = mRequestBean
-        if (requestBean != null) {
-            for (transformer in requestBean.transformerList) {
-                text = transformer.onResultTransformer(text)
-            }
-        }
-        bean.text = text
-        mBinding.resultTv.text = text
+        mBinding.resultTv.text = bean.text
     }
 
     /** 初始化相机 */
