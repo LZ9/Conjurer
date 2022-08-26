@@ -81,7 +81,9 @@ class MainActivity : BaseActivity() {
                 .openCamera(getContext())
         }
 
-        mBinding.asynRecogBtn.setOnClickListener {
+        mBinding.asynRecogSfzBtn.setOnClickListener {
+//            val dialog = PicChooseDialog(getContext())
+//            dialog.show()
             PickerManager.pickPhoneAlbum()
                 .setMaxCount(1)
                 .setNeedPreview(false)

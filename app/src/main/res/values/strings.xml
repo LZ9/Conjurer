@@ -12,5 +12,8 @@
     <string name="main_clean_trained_data_ok">已清空</string>
     <string name="main_clean_log">清空日志</string>
     <string name="main_data_path">训练文件默认路径：%s</string>
-
+    <string name="main_dialog_pic_case">点击样例图片进行识别：</string>
+    <string name="main_dialog_pic_case_1">样例1</string>
+    <string name="main_dialog_pic_case_2">样例2</string>
+    <string name="main_dialog_pic_album">选择手机相册图片</string>
 </resources>
