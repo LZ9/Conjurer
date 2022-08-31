@@ -19,11 +19,11 @@ import com.lodz.android.pandora.widget.dialog.BaseBottomDialog
  * @date 2022/8/25
  */
 class PicChooseDialog(
-    context: Context,
-    private val caseName1: String,
-    @DrawableRes private val caseImg1: Int,
-    private val caseName2: String,
-    @DrawableRes private val caseImg2: Int
+    context: Context,//上下文
+    private val caseName1: String,//例1标题
+    @DrawableRes private val caseImg1: Int,//例1图片
+    private val caseName2: String,//例2标题
+    @DrawableRes private val caseImg2: Int//例2图片
 ) : BaseBottomDialog(context) {
 
     private var mListener: OnChooseListener? = null

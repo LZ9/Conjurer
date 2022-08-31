@@ -14,7 +14,7 @@ class SfzhTransformer : OcrResultTransformer {
     override fun onResultTransformer(text: String): String {
         val word = text.trim().replace(" ", "")
         val list = word.getListBySeparator("\n")
-        val sfzList = ArrayList<String>()
+        val sfzList = ArrayList<String>()//只返回身份证格式校验成功的数据
         for (str in list) {
             if (str.length < 18) {
                 continue
