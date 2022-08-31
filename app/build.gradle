@@ -42,9 +42,30 @@ android {
         }
 
         release {
-            minifyEnabled false
+            minifyEnabled false // 是否进行混淆
+            zipAlignEnabled true // 是否支持zip
+            debuggable false // 是否支持调试
+            jniDebuggable false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             manifestPlaceholders = [FILE_AUTHORITY: defaultConfig.getBuildConfigFields().get("FILE_AUTHORITY").value.replace("\"", "")]
+        }
+    }
+    
+    lint {
+        abortOnError false
+        checkReleaseBuilds false
+    }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def newName
+            if (variant.baseName.endsWith('release')) {
+                def formattedDate = new Date().format('yyyyMMddHHmm')
+                newName = "Conjurer-v" + defaultConfig.versionName + "-" + variant.baseName + "-" + formattedDate + ".apk"
+            } else {
+                newName = "Conjurer-v" + defaultConfig.versionName + "-" + variant.baseName + ".apk"
+            }
+            outputFileName = newName
         }
     }
 }
