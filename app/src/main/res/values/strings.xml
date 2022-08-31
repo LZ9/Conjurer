@@ -8,6 +8,10 @@
     <string name="main_check_permission_cancel">请在设置中打开权限后重启应用</string>
     <string name="main_scan_sfzh_ocr">OCR身份证号拍照识别</string>
     <string name="main_asyn_recog_sfzh">异步识别身份证号图片</string>
+    <string name="main_scan_chn_num_ocr">中文大写数字金额识别</string>
+    <string name="main_asyn_recog_chn_num">异步识别中文大写数字金额图片</string>
+    <string name="main_scan_phone_ocr">手机号识别</string>
+    <string name="main_asyn_recog_phone">异步识别手机号图片</string>
     <string name="main_clean_trained_data">清空训练数据</string>
     <string name="main_clean_trained_data_ok">已清空</string>
     <string name="main_clean_log">清空日志</string>

@@ -87,7 +87,6 @@ class Conjurer private constructor(){
     fun setTrainedDataFileName(vararg zipFileNames: String): Conjurer {
         val array: Array<out String> = zipFileNames
         if (array.isNotEmpty()) {
-            mTrainedDataZipFileNames.clear()//替换安装默认的训练包
             mTrainedDataZipFileNames.addAll(array.toMutableList())
         }
         return this

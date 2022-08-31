@@ -12,6 +12,8 @@ import com.lodz.android.conjurer.data.bean.OcrResultBean
 import com.lodz.android.conjurer.ocr.Conjurer
 import com.lodz.android.conjurer.ocr.OnConjurerListener
 import com.lodz.android.conjurerdemo.databinding.ActivityMainBinding
+import com.lodz.android.conjurerdemo.transformer.ChnNumTransformer
+import com.lodz.android.conjurerdemo.transformer.SfzhTransformer
 import com.lodz.android.corekt.anko.*
 import com.lodz.android.corekt.utils.DateUtils
 import com.lodz.android.pandora.base.activity.BaseActivity
@@ -56,6 +58,7 @@ class MainActivity : BaseActivity() {
 
     override fun getViewBindingLayout(): View = mBinding.root
 
+
     override fun findViews(savedInstanceState: Bundle?) {
         super.findViews(savedInstanceState)
         getTitleBarLayout().needBackButton(false)
@@ -66,19 +69,17 @@ class MainActivity : BaseActivity() {
         super.setListeners()
 
         mBinding.scanSfzBtn.setOnClickListener {
-            Conjurer.create()
-                .setLanguage(Constant.DEFAULT_LANGUAGE)
-                .setEngineMode(TessBaseAPI.OEM_TESSERACT_ONLY)
-                .setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO_OSD)
-                .setBlackList("")
-                .setWhiteList("Xx0123456789")
-                .addOcrResultTransformer(SfzhTransformer())
-                .setOnConjurerListener(mOnConjurerListener)
-                .openCamera(getContext())
+            sfzOcr(null)
         }
 
         mBinding.asynRecogSfzBtn.setOnClickListener {
-            val dialog = PicChooseDialog(getContext())
+            val dialog = PicChooseDialog(
+                getContext(),
+                getString(R.string.main_dialog_pic_case_1),
+                R.drawable.ic_sfzh_case1,
+                getString(R.string.main_dialog_pic_case_2),
+                R.drawable.ic_sfzh_case2
+            )
             dialog.setOnChooseListener { bitmap, picName ->
                 if (picName.isEmpty()){
                     addLog("未选择图片")
@@ -89,7 +90,34 @@ class MainActivity : BaseActivity() {
                     return@setOnChooseListener
                 }
                 addLog("选择图片：".append(picName))
-                OcrRecog(bitmap)
+                sfzOcr(bitmap)
+            }
+            dialog.show()
+        }
+
+        mBinding.scanChnNumBtn.setOnClickListener {
+            chnNumOcr(null)
+        }
+
+        mBinding.asynRecogChnNumBtn.setOnClickListener {
+            val dialog = PicChooseDialog(
+                getContext(),
+                getString(R.string.main_dialog_pic_case_1),
+                R.drawable.ic_chn_num_case1,
+                getString(R.string.main_dialog_pic_case_2),
+                R.drawable.ic_chn_num_case2
+            )
+            dialog.setOnChooseListener { bitmap, picName ->
+                if (picName.isEmpty()){
+                    addLog("未选择图片")
+                    return@setOnChooseListener
+                }
+                if (bitmap == null){
+                    addLog("转换Bitmap失败")
+                    return@setOnChooseListener
+                }
+                addLog("选择图片：".append(picName))
+                chnNumOcr(bitmap)
             }
             dialog.show()
         }
@@ -104,9 +132,9 @@ class MainActivity : BaseActivity() {
         }
     }
 
-    /** OCR图片识别 */
-    private fun OcrRecog(bitmap: Bitmap) {
-        Conjurer.create()
+    /** 身份证OCR */
+    private fun sfzOcr(bitmap: Bitmap?) {
+        val conjurer = Conjurer.create()
             .setLanguage(Constant.DEFAULT_LANGUAGE)
             .setEngineMode(TessBaseAPI.OEM_TESSERACT_ONLY)
             .setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO_OSD)
@@ -114,7 +142,29 @@ class MainActivity : BaseActivity() {
             .setWhiteList("Xx0123456789")
             .addOcrResultTransformer(SfzhTransformer())
             .setOnConjurerListener(mOnConjurerListener)
-            .recogAsync(getContext(), bitmap)
+        if (bitmap == null) {
+            conjurer.openCamera(getContext())
+        } else {
+            conjurer.recogAsync(getContext(), bitmap)
+        }
+    }
+
+    /** 中文大写数字金额OCR */
+    private fun chnNumOcr(bitmap: Bitmap?) {
+        val conjurer = Conjurer.create()
+            .setLanguage("chi_sim")
+            .setTrainedDataFileName("chi_sim.traineddata.zip")
+            .setEngineMode(TessBaseAPI.OEM_TESSERACT_ONLY)
+            .setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO_OSD)
+            .setBlackList("")
+            .setWhiteList("元角分零壹贰叁肆伍陆柒捌玖拾佰仟万亿")
+            .addOcrResultTransformer(ChnNumTransformer())
+            .setOnConjurerListener(mOnConjurerListener)
+        if (bitmap == null) {
+            conjurer.openCamera(getContext())
+        } else {
+            conjurer.recogAsync(getContext(), bitmap)
+        }
     }
 
     /** 监听器 */

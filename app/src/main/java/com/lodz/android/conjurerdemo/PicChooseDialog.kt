@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Environment
 import android.view.View
+import androidx.annotation.DrawableRes
 import com.lodz.android.conjurerdemo.databinding.DialogPicChooseBinding
 import com.lodz.android.corekt.utils.BitmapUtils
 import com.lodz.android.imageloaderkt.ImageLoader
@@ -17,7 +18,13 @@ import com.lodz.android.pandora.widget.dialog.BaseBottomDialog
  * @author zhouL
  * @date 2022/8/25
  */
-class PicChooseDialog(context: Context) : BaseBottomDialog(context) {
+class PicChooseDialog(
+    context: Context,
+    private val caseName1: String,
+    @DrawableRes private val caseImg1: Int,
+    private val caseName2: String,
+    @DrawableRes private val caseImg2: Int
+) : BaseBottomDialog(context) {
 
     private var mListener: OnChooseListener? = null
 
@@ -25,22 +32,24 @@ class PicChooseDialog(context: Context) : BaseBottomDialog(context) {
 
     override fun getViewBindingLayout(): View = mBinding.root
 
+    override fun findViews() {
+        super.findViews()
+        mBinding.case1Img.setImageResource(caseImg1)
+        mBinding.case1NameTv.text = caseName1
+        mBinding.case2Img.setImageResource(caseImg2)
+        mBinding.case2NameTv.text = caseName2
+    }
+
     override fun setListeners() {
         super.setListeners()
         mBinding.case1Btn.setOnClickListener {
             dismiss()
-            mListener?.onPicChoose(
-                BitmapFactory.decodeResource(context.resources, R.drawable.ic_sfzh_case1),
-                context.getString(R.string.main_dialog_pic_case_1),
-            )
+            mListener?.onPicChoose(BitmapFactory.decodeResource(context.resources, caseImg1), caseName1)
         }
 
         mBinding.case2Btn.setOnClickListener {
             dismiss()
-            mListener?.onPicChoose(
-                BitmapFactory.decodeResource(context.resources, R.drawable.ic_sfzh_case2),
-                context.getString(R.string.main_dialog_pic_case_2),
-            )
+            mListener?.onPicChoose(BitmapFactory.decodeResource(context.resources, caseImg2), caseName2)
         }
 
         mBinding.picAlbumBtn.setOnClickListener {

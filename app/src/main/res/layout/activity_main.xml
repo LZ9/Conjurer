@@ -29,6 +29,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
@@ -52,6 +53,61 @@
                 app:backgroundTint="@color/color_9bd3ec" />
         </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/scan_chn_num_btn"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="5dp"
+                android:layout_weight="1"
+                android:text="@string/main_scan_chn_num_ocr"
+                android:textSize="12sp"
+                app:backgroundTint="@color/color_9bd3ec" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/asyn_recog_chn_num_btn"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:layout_weight="1"
+                android:text="@string/main_asyn_recog_chn_num"
+                android:textSize="12sp"
+                app:backgroundTint="@color/color_9bd3ec" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/scan_phone_btn"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="5dp"
+                android:layout_weight="1"
+                android:text="@string/main_scan_phone_ocr"
+                android:textSize="12sp"
+                app:backgroundTint="@color/color_9bd3ec" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/asyn_recog_phone_btn"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:layout_weight="1"
+                android:text="@string/main_asyn_recog_phone"
+                android:textSize="12sp"
+                app:backgroundTint="@color/color_9bd3ec" />
+
+        </LinearLayout>
     </LinearLayout>
 
     <ImageView

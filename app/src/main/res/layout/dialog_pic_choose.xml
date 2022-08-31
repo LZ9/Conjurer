@@ -33,17 +33,17 @@
             android:orientation="vertical">
 
             <ImageView
+                android:id="@+id/case1_img"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:contentDescription="@string/app_name"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_sfzh_case1" />
+                android:scaleType="fitCenter" />
 
             <TextView
+                android:id="@+id/case1_name_tv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:text="@string/main_dialog_pic_case_1" />
+                android:layout_marginTop="5dp" />
 
         </LinearLayout>
 
@@ -57,17 +57,17 @@
             android:orientation="vertical">
 
             <ImageView
+                android:id="@+id/case2_img"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:contentDescription="@string/app_name"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_sfzh_case2" />
+                android:scaleType="fitCenter" />
 
             <TextView
+                android:id="@+id/case2_name_tv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:text="@string/main_dialog_pic_case_2" />
+                android:layout_marginTop="5dp" />
 
         </LinearLayout>
 
