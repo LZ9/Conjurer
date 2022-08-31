@@ -13,7 +13,7 @@
 	-->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
 	<item android:state_pressed="true"
-		android:drawable="@drawable/shutter_pressed" />
+		android:drawable="@drawable/cj_shutter_pressed" />
 		
-	<item android:drawable="@drawable/shutter" />
+	<item android:drawable="@drawable/cj_shutter" />
 </selector>

@@ -22,7 +22,7 @@
         android:clickable="true"
         android:focusable="true"
         android:gravity="center_vertical"
-        android:src="@drawable/shutter_button" />
+        android:src="@drawable/cj_shutter_button" />
 
     <!--  识别结果展示  -->
     <LinearLayout
@@ -80,7 +80,7 @@
                 android:layout_height="match_parent"
                 android:layout_marginEnd="10dp"
                 android:layout_weight="1"
-                android:background="@drawable/selector_btn_ocr_result"
+                android:background="@drawable/cj_selector_btn_ocr_result"
                 android:gravity="center"
                 android:text="@string/cj_app_confirm" />
 
@@ -90,7 +90,7 @@
                 android:layout_height="match_parent"
                 android:layout_marginStart="10dp"
                 android:layout_weight="1"
-                android:background="@drawable/selector_btn_ocr_result"
+                android:background="@drawable/cj_selector_btn_ocr_result"
                 android:gravity="center"
                 android:text="@string/cj_app_cancel" />
 
