@@ -1,9 +1,9 @@
 package com.lodz.android.conjurerdemo
 
 import android.Manifest
+import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.view.View
 import com.googlecode.tesseract.android.TessBaseAPI
 import com.lodz.android.conjurer.data.status.InitStatus
@@ -13,12 +13,8 @@ import com.lodz.android.conjurer.ocr.Conjurer
 import com.lodz.android.conjurer.ocr.OnConjurerListener
 import com.lodz.android.conjurerdemo.databinding.ActivityMainBinding
 import com.lodz.android.corekt.anko.*
-import com.lodz.android.corekt.file.DocumentWrapper
-import com.lodz.android.corekt.utils.BitmapUtils
 import com.lodz.android.corekt.utils.DateUtils
-import com.lodz.android.imageloaderkt.ImageLoader
 import com.lodz.android.pandora.base.activity.BaseActivity
-import com.lodz.android.pandora.picker.file.PickerManager
 import com.lodz.android.pandora.utils.jackson.toJsonString
 import com.lodz.android.pandora.utils.viewbinding.bindingLayout
 import permissions.dispatcher.PermissionRequest
@@ -82,32 +78,20 @@ class MainActivity : BaseActivity() {
         }
 
         mBinding.asynRecogSfzBtn.setOnClickListener {
-//            val dialog = PicChooseDialog(getContext())
-//            dialog.show()
-            PickerManager.pickPhoneAlbum()
-                .setMaxCount(1)
-                .setNeedPreview(false)
-                .setNeedBottomInfo(false)
-                .setNeedCamera(true, Environment.DIRECTORY_DCIM)
-                .setAuthority(BuildConfig.FILE_AUTHORITY)
-                .setImgLoader { context, source, imageView ->
-                    ImageLoader.create(context)
-                        .loadUri(source.documentFile.uri)
-                        .setPlaceholder(com.lodz.android.pandora.R.drawable.pandora_ic_img)
-                        .setError(com.lodz.android.pandora.R.drawable.pandora_ic_img)
-                        .setCenterCrop()
-                        .into(imageView)
+            val dialog = PicChooseDialog(getContext())
+            dialog.setOnChooseListener { bitmap, picName ->
+                if (picName.isEmpty()){
+                    addLog("未选择图片")
+                    return@setOnChooseListener
                 }
-                .setOnFilePickerListener{
-                    if (it.isEmpty()){
-                        addLog("未选择图片")
-                        return@setOnFilePickerListener
-                    }
-                    val dw = it[0]
-                    addLog("选择图片：".append(dw.fileName))
-                    OcrRecog(dw)
+                if (bitmap == null){
+                    addLog("转换Bitmap失败")
+                    return@setOnChooseListener
                 }
-                .open(getContext())
+                addLog("选择图片：".append(picName))
+                OcrRecog(bitmap)
+            }
+            dialog.show()
         }
 
         mBinding.cleanDataBtn.setOnClickListener {
@@ -121,12 +105,7 @@ class MainActivity : BaseActivity() {
     }
 
     /** OCR图片识别 */
-    private fun OcrRecog(dw: DocumentWrapper) {
-        val bitmap = BitmapUtils.uriToBitmap(getContext(), dw.documentFile.uri)
-        if (bitmap == null){
-            addLog("Uri转Bitmap失败")
-            return
-        }
+    private fun OcrRecog(bitmap: Bitmap) {
         Conjurer.create()
             .setLanguage(Constant.DEFAULT_LANGUAGE)
             .setEngineMode(TessBaseAPI.OEM_TESSERACT_ONLY)
@@ -136,7 +115,6 @@ class MainActivity : BaseActivity() {
             .addOcrResultTransformer(SfzhTransformer())
             .setOnConjurerListener(mOnConjurerListener)
             .recogAsync(getContext(), bitmap)
-
     }
 
     /** 监听器 */
