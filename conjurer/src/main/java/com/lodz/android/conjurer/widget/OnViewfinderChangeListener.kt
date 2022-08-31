@@ -9,6 +9,7 @@ import android.graphics.Rect
  */
 fun interface OnViewfinderChangeListener {
 
+    /** 取景器大小变化 */
     fun onRectChanged(rect: Rect)
 
 }

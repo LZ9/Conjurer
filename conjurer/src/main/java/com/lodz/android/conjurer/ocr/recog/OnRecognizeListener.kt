@@ -9,26 +9,10 @@ import com.lodz.android.conjurer.data.bean.OcrResultBean
  */
 interface OnRecognizeListener {
 
+    /** 开始解码 */
     fun onOcrDecodeStart()
-
+    /** 返回识别结果 */
     fun onOcrDecodeResult(resultBean: OcrResultBean)
-
+    /** 结束解码 */
     fun onOcrDecodeEnd()
-
-
-//    fun onOcrDecode(cameraX: Int, cameraY: Int, data: ByteArray)
-//
-//    fun onOcrDecodeSucceeded()
-//
-//    fun onOcrDecodeFailed()
-//
-//    fun onOcrContinuousDecode(cameraX: Int, cameraY: Int, data: ByteArray)
-//
-//    fun onOcrContinuousDecodeSucceeded()
-//
-//    fun onOcrContinuousDecodeFailed()
-//
-//    fun onRestartPreview()
-//
-//    fun onQuit()
 }
