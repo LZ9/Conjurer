@@ -2,7 +2,6 @@ package com.lodz.android.conjurer.camera
 
 import android.content.Context
 import android.util.AttributeSet
-import android.util.Log
 import android.view.SoundEffectConstants
 import androidx.appcompat.widget.AppCompatImageView
 

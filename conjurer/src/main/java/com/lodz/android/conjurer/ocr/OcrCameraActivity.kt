@@ -4,7 +4,6 @@ import android.app.ProgressDialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.SurfaceHolder
 import android.view.View
 import android.view.Window
@@ -21,7 +20,6 @@ import com.lodz.android.conjurer.data.event.OcrEvent
 import com.lodz.android.conjurer.databinding.CjActivityOcrCameraBinding
 import com.lodz.android.conjurer.ocr.recog.OcrRecognizeManager
 import com.lodz.android.conjurer.ocr.recog.OnRecognizeListener
-import kotlinx.coroutines.*
 import org.greenrobot.eventbus.EventBus
 
 /**

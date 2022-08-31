@@ -11,7 +11,6 @@ import android.view.View
 import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
 import com.lodz.android.conjurer.R
-import com.lodz.android.conjurer.data.bean.OcrResultBean
 
 /**
  * 取景器控件

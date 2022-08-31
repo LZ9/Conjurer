@@ -1,8 +1,6 @@
 package com.lodz.android.conjurer.camera
 
-import android.content.Context
 import android.hardware.Camera
-import android.widget.Toast
 import java.util.*
 
 
