@@ -13,6 +13,7 @@ import com.lodz.android.conjurer.ocr.Conjurer
 import com.lodz.android.conjurer.ocr.OnConjurerListener
 import com.lodz.android.conjurerdemo.databinding.ActivityMainBinding
 import com.lodz.android.conjurerdemo.transformer.ChnNumTransformer
+import com.lodz.android.conjurerdemo.transformer.PhoneTransformer
 import com.lodz.android.conjurerdemo.transformer.SfzhTransformer
 import com.lodz.android.corekt.anko.*
 import com.lodz.android.corekt.utils.DateUtils
@@ -122,6 +123,33 @@ class MainActivity : BaseActivity() {
             dialog.show()
         }
 
+        mBinding.scanPhoneBtn.setOnClickListener {
+            phoneOcr(null)
+        }
+
+        mBinding.asynRecogPhoneBtn.setOnClickListener {
+            val dialog = PicChooseDialog(
+                getContext(),
+                getString(R.string.main_dialog_pic_case_1),
+                R.drawable.ic_phone_case1,
+                getString(R.string.main_dialog_pic_case_2),
+                R.drawable.ic_phone_case2
+            )
+            dialog.setOnChooseListener { bitmap, picName ->
+                if (picName.isEmpty()){
+                    addLog("未选择图片")
+                    return@setOnChooseListener
+                }
+                if (bitmap == null){
+                    addLog("转换Bitmap失败")
+                    return@setOnChooseListener
+                }
+                addLog("选择图片：".append(picName))
+                phoneOcr(bitmap)
+            }
+            dialog.show()
+        }
+
         mBinding.cleanDataBtn.setOnClickListener {
             Conjurer.create().deleteTessdataDir(getContext())
             toastShort(R.string.main_clean_trained_data_ok)
@@ -159,6 +187,23 @@ class MainActivity : BaseActivity() {
             .setBlackList("")
             .setWhiteList("元角分零壹贰叁肆伍陆柒捌玖拾佰仟万亿")
             .addOcrResultTransformer(ChnNumTransformer())
+            .setOnConjurerListener(mOnConjurerListener)
+        if (bitmap == null) {
+            conjurer.openCamera(getContext())
+        } else {
+            conjurer.recogAsync(getContext(), bitmap)
+        }
+    }
+
+    /** 手机号OCR */
+    private fun phoneOcr(bitmap: Bitmap?) {
+        val conjurer = Conjurer.create()
+            .setLanguage(Constant.DEFAULT_LANGUAGE)
+            .setEngineMode(TessBaseAPI.OEM_TESSERACT_ONLY)
+            .setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO_OSD)
+            .setBlackList("")
+            .setWhiteList("0123456789")
+            .addOcrResultTransformer(PhoneTransformer())
             .setOnConjurerListener(mOnConjurerListener)
         if (bitmap == null) {
             conjurer.openCamera(getContext())

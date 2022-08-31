@@ -3,7 +3,7 @@ package com.lodz.android.conjurerdemo.transformer
 import com.lodz.android.conjurer.transformer.OcrResultTransformer
 
 /**
- * 身份证数据转换器
+ * 中文大写数字金额数据转换器
  * @author zhouL
  * @date 2022/8/12
  */
