@@ -198,9 +198,6 @@ class MainActivity : BaseActivity() {
     /** 手机号OCR */
     private fun phoneOcr(bitmap: Bitmap?) {
         val conjurer = Conjurer.create()
-            .setLanguage(Constant.DEFAULT_LANGUAGE)
-            .setEngineMode(TessBaseAPI.OEM_TESSERACT_ONLY)
-            .setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO_OSD)
             .setBlackList("")
             .setWhiteList("0123456789")
             .addOcrResultTransformer(PhoneTransformer())
