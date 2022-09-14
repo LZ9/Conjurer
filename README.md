@@ -58,6 +58,10 @@ Conjurer.create()
     //.recogAsync(getContext(), bitmap)//传入图片异步识别
 ```
 - 白名单setWhiteList(XXXX)切勿设置空字符串，否则识别不出结果
+- 白名单不设置时的默认值：Constant.DEFAULT_WHITELIST
+- 黑名单不设置时的默认值：Constant.DEFAULT_BLACKLIST
+- 训练文件用zip压缩时，请不要在最外层用文件夹包裹，避免解压错误
+- 请根据实际业务需要到[tessdata](https://github.com/tesseract-ocr/tessdata/tree/3.04.00)下载对应语言的训练包
 - 如果有添加识别结果转换器addOcrResultTransformer()，相机拍照的识别结果页面会展示转换器处理过后的内容，并非原始识别内容
 - 具体调用可以参考[demo](https://github.com/LZ9/Conjurer/blob/master/app/src/main/java/com/lodz/android/conjurerdemo/MainActivity.kt)
 
@@ -74,7 +78,7 @@ Conjurer.create()
 - 识别纯色背景和纯色印刷体文字（例如白底黑字）
 - 识别单一的文字类型，例如纯数字、纯字母、在白名单范围内的纯中文
 - 通过添加识别结果转换器可以用算法（例如特定结果验证或者正则表达式）来提示识别率
-- 启动相机识时，要尽量将所要识别的内容充满识别框，这样识别准确率高
+- 启动相机识时，要尽量将所要识别的内容充满识别框，这样识别率高
 - 使用图片识别时，要提前对图片进行裁剪，将要识别的区域裁剪出来后再传入，这样识别率高
 
 ## 扩展
