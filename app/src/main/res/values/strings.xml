@@ -13,6 +13,7 @@
     <string name="main_scan_phone_ocr">手机号识别</string>
     <string name="main_asyn_recog_phone">异步识别手机号图片</string>
     <string name="main_clean_trained_data">清空训练数据</string>
+    <string name="main_scan_default">默认扫描配置（英文）</string>
     <string name="main_clean_trained_data_ok">已清空</string>
     <string name="main_clean_log">清空日志</string>
     <string name="main_data_path">训练文件默认路径：%s</string>

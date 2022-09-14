@@ -69,6 +69,12 @@ class MainActivity : BaseActivity() {
     override fun setListeners() {
         super.setListeners()
 
+        mBinding.scanDefaultBtn.setOnClickListener {
+            Conjurer.create()
+                .setOnConjurerListener(mOnConjurerListener)
+                .openCamera(getContext())
+        }
+
         mBinding.scanSfzBtn.setOnClickListener {
             sfzOcr(null)
         }
