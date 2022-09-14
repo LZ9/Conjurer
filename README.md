@@ -10,8 +10,9 @@
 
 ## 目录
 - [1、引用方式](https://github.com/LZ9/JsBridgeKt/blob/master/README_CN.md#1引用方式)
-- [2、使用教程](https://github.com/LZ9/JsBridgeKt/blob/master/README_CN.md#2android端使用方式)
-- [3、注意事项](https://github.com/LZ9/JsBridgeKt/blob/master/README_CN.md#2android端使用方式)
+- [2、内部依赖库](https://github.com/LZ9/JsBridgeKt/blob/master/README_CN.md#1引用方式)
+- [3、使用教程](https://github.com/LZ9/JsBridgeKt/blob/master/README_CN.md#2android端使用方式)
+- [4、注意事项](https://github.com/LZ9/JsBridgeKt/blob/master/README_CN.md#2android端使用方式)
 - [扩展](https://github.com/LZ9/JsBridgeKt/blob/master/README_CN.md#扩展)
 
 ## 1、引用方式
@@ -28,7 +29,15 @@ repositories {
 implementation 'ink.lodz:conjurer:1.0.0'
 ```
 
-## 2、使用教程
+## 2、内部依赖库
+Conjurer引用了OCR的开源库，你可以确认你的项目，排除重复的引用。
+```
+    dependencies {
+        api 'com.rmtheis:tess-two:9.1.0'
+    }
+```
+
+## 3、使用教程
 Conjurer默认为你提供了两种调用方式，一种是调起相机拍照识别，另一种是传入图片异步识别。完整的调用方式如下：
 ```
 Conjurer.create()
@@ -39,7 +48,7 @@ Conjurer.create()
     .setPageSegMode(TessBaseAPI.PageSegMode.PSM_AUTO_OSD)//设置页面分段模式，不设置默认TessBaseAPI.PageSegMode.PSM_AUTO_OSD
     .setBlackList("")//设置识别黑名单
     .setWhiteList("0123456789")//设置识别白名单，必须设置要识别的值，否则无法识别出想要的结果
-    .addOcrResultTransformer(XXXTransformer())//添加识别结果转换器，可通过自定义算法对识别结果进行优化，提升识别率
+    .addOcrResultTransformer(XXXTransformer())//添加识别结果转换器，可通过自定义的算法对识别结果进行优化，提升识别率
     .setOnConjurerListener(object :OnConjurerListener{//添加识别监听器
         override fun onInit(status: InitStatus) {}//初始化状态回调
         override fun onOcrResult(bean: OcrResultBean) {}//识别结果回调
@@ -48,21 +57,25 @@ Conjurer.create()
     .openCamera(getContext())//调起相机拍照识别
     //.recogAsync(getContext(), bitmap)//传入图片异步识别
 ```
-- 白名单setWhiteList(XXXX)一定要设置，否则基本识别不出来
+- 白名单setWhiteList(XXXX)切勿设置空字符串，否则识别不出结果
+- 如果有添加识别结果转换器addOcrResultTransformer()，相机拍照的识别结果页面会展示转换器处理过后的内容，并非原始识别内容
+- 具体调用可以参考[demo](https://github.com/rmtheis/android-ocr)
 
-
-## 3、注意事项
+## 4、注意事项
 目前OCR的开源库仍然存在较多的限制，若在项目中使用须注意以下情况：
-#### 1）OCR识别率较低的场景：
+##### 1）OCR识别率较低的场景：
 - 手写体文字（基本识别不出来）
 - 复杂背景（例如文字的背景存在很多线条或花纹，会干扰识别）
 - 文字存在高亮色差时识别率低（基本只能识别到高亮色的文字，其他文字识别不到）
-- 文字颜色和背景颜色十分相近（混 ~ 合 ~ 在 ~ 一 ~ 起 ~ ）
+- 文字颜色和背景颜色十分相近（混合在一起识别率较低）
 - 同时对中文、英文、数字等多种类文字进行混合识别，例如车牌（**每一次**的识别结果都不是你想要的）
 
-#### 2）OCR识别率较高的场景：
-- 纯色背景和纯色印刷体文字（例如白底黑字）
-
+##### 2）OCR识别率较高的场景：
+- 识别纯色背景和纯色印刷体文字（例如白底黑字）
+- 识别单一的文字类型，例如纯数字、纯字母、在白名单范围内的纯中文
+- 通过添加识别结果转换器可以用算法（例如特定结果验证或者正则表达式）来提示识别率
+- 启动相机识时，要尽量将所要识别的内容充满识别框，这样识别准确率高
+- 使用图片识别时，要提前对图片进行裁剪，将要识别的区域裁剪出来后再传入，这样识别率高
 
 ## 扩展
 
