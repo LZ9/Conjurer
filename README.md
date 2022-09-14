@@ -9,11 +9,11 @@
 7. 增加了若干配置功能
 
 ## 目录
-- [1、引用方式](https://github.com/LZ9/JsBridgeKt/blob/master/README_CN.md#1引用方式)
-- [2、内部依赖库](https://github.com/LZ9/JsBridgeKt/blob/master/README_CN.md#1引用方式)
-- [3、使用教程](https://github.com/LZ9/JsBridgeKt/blob/master/README_CN.md#2android端使用方式)
-- [4、注意事项](https://github.com/LZ9/JsBridgeKt/blob/master/README_CN.md#2android端使用方式)
-- [扩展](https://github.com/LZ9/JsBridgeKt/blob/master/README_CN.md#扩展)
+- [1、引用方式](https://github.com/LZ9/Conjurer#1引用方式)
+- [2、内部依赖库](https://github.com/LZ9/Conjurer#2内部依赖库)
+- [3、使用教程](https://github.com/LZ9/Conjurer#3使用教程)
+- [4、注意事项](https://github.com/LZ9/Conjurer#4注意事项)
+- [扩展](https://github.com/LZ9/Conjurer#扩展)
 
 ## 1、引用方式
 由于jcenter删库跑路，请大家添加mavenCentral依赖
@@ -59,7 +59,7 @@ Conjurer.create()
 ```
 - 白名单setWhiteList(XXXX)切勿设置空字符串，否则识别不出结果
 - 如果有添加识别结果转换器addOcrResultTransformer()，相机拍照的识别结果页面会展示转换器处理过后的内容，并非原始识别内容
-- 具体调用可以参考[demo](https://github.com/rmtheis/android-ocr)
+- 具体调用可以参考[demo](https://github.com/LZ9/Conjurer/blob/master/app/src/main/java/com/lodz/android/conjurerdemo/MainActivity.kt)
 
 ## 4、注意事项
 目前OCR的开源库仍然存在较多的限制，若在项目中使用须注意以下情况：
@@ -79,5 +79,5 @@ Conjurer.create()
 
 ## 扩展
 
-- [更新记录](https://github.com/LZ9/JsBridgeKt/blob/master/jsbridgekt/readme_update.md)
-- [回到顶部](https://github.com/LZ9/JsBridgeKt/blob/master/README_CN.md#jsbridgekt库)
+- [更新记录](https://github.com/LZ9/Conjurer/blob/master/conjurer/readme_update.md)
+- [回到顶部](https://github.com/LZ9/Conjurer#conjurer库)

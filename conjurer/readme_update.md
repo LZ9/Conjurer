@@ -6,6 +6,6 @@
 
 
 ## 扩展
-- [回到顶部](https://github.com/LZ9/JsBridgeKt/blob/master/jsbridgekt/readme_update.md)
-- [JsBridgeKt 主页](https://github.com/LZ9/JsBridgeKt)
+- [回到顶部](https://github.com/LZ9/Conjurer/blob/master/conjurer/readme_update.md)
+- [Conjurer 主页](https://github.com/LZ9/Conjurer)
 
