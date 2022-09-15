@@ -63,7 +63,7 @@ Conjurer.create()
 - 训练文件用zip压缩时，请不要在最外层用文件夹包裹，避免解压错误
 - 请根据实际业务需要到[tessdata](https://github.com/tesseract-ocr/tessdata/tree/3.04.00)下载对应语言的训练包
 - 如果有添加识别结果转换器addOcrResultTransformer()，相机拍照的识别结果页面会展示转换器处理过后的内容，并非原始识别内容
-- 具体调用可以参考[demo](https://github.com/LZ9/Conjurer/blob/master/app/src/main/java/com/lodz/android/conjurerdemo/MainActivity.kt)
+- 我简单实现了默认英文识别、身份证识别、中文大写数字金额识别和手机号识别的用例，具体调用方法可以参考[demo](https://github.com/LZ9/Conjurer/blob/master/app/src/main/java/com/lodz/android/conjurerdemo/MainActivity.kt)
 
 ## 4、注意事项
 目前OCR的开源库仍然存在较多的限制，若在项目中使用须注意以下情况：
