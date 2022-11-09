@@ -98,7 +98,7 @@ Conjurer.create()
 ## 扩展
 
 - [更新记录](https://github.com/LZ9/Conjurer/blob/master/conjurer/readme_update.md)
-- [回到顶部](https://github.com/LZ9/Conjurer#conjurer库)
+- [回到顶部](https://github.com/LZ9/Conjurer#conjurer文字ocr识别)
 
 ## License
 - [Apache Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.html)
