@@ -5,11 +5,11 @@ plugins {
 //apply from: 'publish.gradle'
 
 android {
-    compileSdk 32
+    compileSdk 33
 
     defaultConfig {
         minSdk 21
-        targetSdk 32
+        targetSdk 33
         versionCode 2
         versionName "1.0.1"// 未上传
 
@@ -40,7 +40,7 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.5.0'
+    implementation 'androidx.appcompat:appcompat:1.5.1'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
     implementation 'org.greenrobot:eventbus:3.3.1'
 
