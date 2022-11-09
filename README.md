@@ -1,4 +1,4 @@
-# Conjurer库
+# Conjurer文字OCR识别
 我将[rmtheis](https://github.com/rmtheis)的[android-ocr](https://github.com/rmtheis/android-ocr)库转为了kotlin版本并进行了以下重构：
 1. 将取景框控件ViewfinderView和识别API、相机进行解耦
 2. 去掉Handler和AsyncTask的写法，改为使用协程来进行异步操作
