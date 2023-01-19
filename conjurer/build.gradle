@@ -37,6 +37,7 @@ android {
         abortOnError false
         checkReleaseBuilds false
     }
+    namespace 'com.lodz.android.conjurer'
 }
 
 dependencies {

@@ -55,6 +55,7 @@ android {
         abortOnError false
         checkReleaseBuilds false
     }
+    namespace 'com.lodz.android.conjurerdemo'
 
     applicationVariants.all { variant ->
         variant.outputs.all { output ->
