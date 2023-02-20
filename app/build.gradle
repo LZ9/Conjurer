@@ -4,12 +4,12 @@ plugins {
 }
 
 android {
-    compileSdk 32
+    compileSdk 33
 
     defaultConfig {
         applicationId "com.lodz.android.conjurerdemo"
         minSdk 21
-        targetSdk 32
+        targetSdk 33
         versionCode 1
         versionName "1.0"
     }
@@ -72,8 +72,8 @@ android {
 }
 
 dependencies {
-    implementation 'ink.lodz:pandora:2.0.0'
-    implementation 'ink.lodz:imageloader-kt:1.2.1'
+    implementation 'ink.lodz:pandora:2.0.3'
+    implementation 'ink.lodz:imageloader-kt:1.2.3'
     // 权限申请
     implementation "com.github.permissions-dispatcher:ktx:1.1.4"
     //谷歌电话号码归属地库
