@@ -101,11 +101,8 @@ class ViewfinderLayout : View {
         mListener = listener
     }
 
-    override fun onDraw(canvas: Canvas?) {
+    override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        if (canvas == null){
-            return
-        }
         var rect = mViewfinderRect
         if (rect == null) {
             mViewfinderRect = getViewfinderRect(mViewfinderWidth, mViewfinderHeight)

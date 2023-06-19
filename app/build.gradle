@@ -72,15 +72,15 @@ android {
 }
 
 dependencies {
-    implementation 'ink.lodz:pandora:2.0.3'
-    implementation 'ink.lodz:imageloader-kt:1.2.3'
+    implementation 'ink.lodz:pandora:2.0.4'
+    implementation 'ink.lodz:imageloader-kt:1.2.4'
     // 权限申请
     implementation "com.github.permissions-dispatcher:ktx:1.1.4"
     //谷歌电话号码归属地库
-    implementation 'com.googlecode.libphonenumber:libphonenumber:8.12.54'
-    implementation 'com.googlecode.libphonenumber:carrier:1.99'
-    implementation 'com.googlecode.libphonenumber:geocoder:2.99'
-    implementation 'com.googlecode.libphonenumber:prefixmapper:2.190'
+    implementation 'com.googlecode.libphonenumber:libphonenumber:8.13.14'
+    implementation 'com.googlecode.libphonenumber:carrier:1.198'
+    implementation 'com.googlecode.libphonenumber:geocoder:2.208'
+    implementation 'com.googlecode.libphonenumber:prefixmapper:2.208'
 
     implementation project(path: ':conjurer')
 }
